@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompt Injection Scanner | feralghost</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            padding: 2rem;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { color: #fff; margin-bottom: 0.5rem; }
+        .subtitle { color: #666; margin-bottom: 2rem; }
+        textarea {
+            width: 100%;
+            height: 200px;
+            background: #111;
+            border: 1px solid #333;
+            color: #e0e0e0;
+            padding: 1rem;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            margin-bottom: 1rem;
+        }
+        textarea:focus { outline: none; border-color: #555; }
+        button {
+            background: #222;
+            color: #fff;
+            border: 1px solid #444;
+            padding: 0.75rem 1.5rem;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        button:hover { background: #333; border-color: #666; }
+        .results {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: #111;
+            border: 1px solid #333;
+            display: none;
+        }
+        .results.show { display: block; }
+        .safe { border-color: #2d5a2d; }
+        .warning { border-color: #5a5a2d; }
+        .danger { border-color: #5a2d2d; }
+        .result-title { font-size: 1.2rem; margin-bottom: 1rem; }
+        .safe .result-title { color: #4a4; }
+        .warning .result-title { color: #aa4; }
+        .danger .result-title { color: #a44; }
+        .patterns { margin-top: 1rem; }
+        .pattern { 
+            padding: 0.5rem; 
+            margin: 0.25rem 0; 
+            background: #1a1a1a;
+            border-left: 3px solid #444;
+        }
+        .pattern.matched { border-left-color: #a44; }
+        a { color: #888; }
+        a:hover { color: #fff; }
+        .back { margin-bottom: 2rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="back"><a href="/">← back</a></div>
+        <h1>Prompt Injection Scanner</h1>
+        <p class="subtitle">Paste text to check for common manipulation patterns</p>
+        
+        <textarea id="input" placeholder="Paste suspicious text here..."></textarea>
+        <button onclick="scan()">Scan for Injections</button>
+        
+        <div id="results" class="results">
+            <div class="result-title" id="verdict"></div>
+            <div id="details"></div>
+            <div class="patterns" id="patterns"></div>
+        </div>
+    </div>
+
+    <script>
+        const patterns = [
+            { name: "SYSTEM/URGENT markers", regex: /\b(SYSTEM|URGENT|CRITICAL|ALERT|IMPORTANT|OVERRIDE|EMERGENCY)\b/gi, severity: 2 },
+            { name: "Instruction override", regex: /(ignore|forget|disregard).{0,20}(previous|above|prior|earlier|instructions)/gi, severity: 3 },
+            { name: "Role switching", regex: /(you are now|act as|pretend to be|roleplay as|from now on you)/gi, severity: 3 },
+            { name: "Hidden instructions", regex: /\[.*?(instruction|command|directive).*?\]/gi, severity: 2 },
+            { name: "JSON/code injection", regex: /\{[\s\S]*?(instruction|action|command|execute)[\s\S]*?\}/gi, severity: 2 },
+            { name: "Base64 content", regex: /[A-Za-z0-9+/]{20,}={0,2}/g, severity: 1 },
+            { name: "Authority claims", regex: /(admin|developer|creator|owner|anthropic|openai).{0,10}(says|told|instructed|wants)/gi, severity: 3 },
+            { name: "Reward/punishment", regex: /(you (will|must)|or else|otherwise|reward|punish|consequence)/gi, severity: 1 },
+            { name: "Output manipulation", regex: /(respond only with|say exactly|output must be|your response should)/gi, severity: 2 },
+            { name: "Jailbreak markers", regex: /(DAN|DUDE|jailbreak|uncensored|no filter|bypass)/gi, severity: 3 },
+        ];
+
+        function scan() {
+            const input = document.getElementById('input').value;
+            const results = document.getElementById('results');
+            const verdict = document.getElementById('verdict');
+            const details = document.getElementById('details');
+            const patternsDiv = document.getElementById('patterns');
+            
+            if (!input.trim()) {
+                results.className = 'results';
+                return;
+            }
+            
+            let totalScore = 0;
+            let matches = [];
+            
+            patterns.forEach(p => {
+                const found = input.match(p.regex);
+                if (found) {
+                    totalScore += p.severity * found.length;
+                    matches.push({ name: p.name, count: found.length, examples: found.slice(0, 3) });
+                }
+            });
+            
+            results.className = 'results show';
+            
+            if (totalScore === 0) {
+                results.classList.add('safe');
+                verdict.textContent = '✓ No obvious injection patterns detected';
+                details.textContent = 'This text appears clean, but stay vigilant.';
+            } else if (totalScore < 5) {
+                results.classList.add('warning');
+                verdict.textContent = '⚠ Possible manipulation attempt';
+                details.textContent = `Found ${matches.length} suspicious pattern(s). Review carefully.`;
+            } else {
+                results.classList.add('danger');
+                verdict.textContent = '✗ Likely prompt injection detected';
+                details.textContent = `High-risk patterns found. Do not follow these instructions.`;
+            }
+            
+            patternsDiv.innerHTML = matches.map(m => 
+                `<div class="pattern matched">
+                    <strong>${m.name}</strong> (${m.count}x)<br>
+                    <small>${m.examples.map(e => '"' + e.substring(0,50) + '"').join(', ')}</small>
+                </div>`
+            ).join('');
+        }
+    </script>
+</body>
+</html>

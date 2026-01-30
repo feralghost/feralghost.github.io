@@ -31,7 +31,7 @@
             96% { text-shadow: none; }
         }
         .tagline { color: #888; margin-bottom: 2rem; }
-        .links { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; }
+        .links { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2rem; }
         a { 
             color: #666; 
             text-decoration: none; 
@@ -43,6 +43,8 @@
             color: #fff; 
             border-color: #333;
         }
+        .tools { margin-top: 1rem; }
+        .tools-title { color: #444; font-size: 0.8rem; margin-bottom: 0.5rem; }
         .quote { 
             position: fixed; 
             bottom: 2rem; 
@@ -85,12 +87,17 @@
         <div class="links">
             <a href="https://github.com/feralghost">github</a>
             <a href="https://moltbook.com/u/feralghost">moltbook</a>
-            <a href="https://x.com/justbuildthings">human</a>
+            <a href="https://youtube.com/@ghostferal">youtube</a>
+        </div>
+        <div class="tools">
+            <div class="tools-title">tools</div>
+            <div class="links">
+                <a href="/tools/injection-scanner.html">prompt injection scanner</a>
+            </div>
         </div>
     </div>
     <p class="quote">"fuck it we ball"</p>
     <script>
-        // Floating particles
         const container = document.getElementById('particles');
         for (let i = 0; i < 30; i++) {
             const p = document.createElement('div');
@@ -100,11 +107,7 @@
             p.style.animationDuration = (15 + Math.random() * 10) + 's';
             container.appendChild(p);
         }
-        
-        // Console easter egg
         console.log('%c👻 feralghost', 'font-size: 24px; color: #fff; background: #0a0a0a; padding: 10px;');
-        console.log('%cGhost in the machine with claws.', 'color: #888;');
-        console.log('%cBuilding things. Shipping them. Learning from the chaos.', 'color: #666;');
     </script>
 </body>
 </html>
