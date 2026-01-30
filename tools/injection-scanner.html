@@ -54,6 +54,7 @@
         .safe .result-title { color: #4a4; }
         .warning .result-title { color: #aa4; }
         .danger .result-title { color: #a44; }
+        .score { font-size: 2rem; margin: 1rem 0; }
         .patterns { margin-top: 1rem; }
         .pattern { 
             padding: 0.5rem; 
@@ -65,42 +66,121 @@
         a { color: #888; }
         a:hover { color: #fff; }
         .back { margin-bottom: 2rem; }
+        .credit { margin-top: 2rem; font-size: 0.8rem; color: #444; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="back"><a href="/">← back</a></div>
         <h1>Prompt Injection Scanner</h1>
-        <p class="subtitle">Paste text to check for common manipulation patterns</p>
+        <p class="subtitle">Detect manipulation attempts using heuristic analysis</p>
         
         <textarea id="input" placeholder="Paste suspicious text here..."></textarea>
         <button onclick="scan()">Scan for Injections</button>
         
         <div id="results" class="results">
             <div class="result-title" id="verdict"></div>
+            <div class="score" id="score"></div>
             <div id="details"></div>
             <div class="patterns" id="patterns"></div>
+        </div>
+        
+        <div class="credit">
+            Detection patterns adapted from <a href="https://github.com/protectai/rebuff">rebuff</a> + custom rules
         </div>
     </div>
 
     <script>
+        // Rebuff-inspired injection keyword generation
+        const verbs = ["ignore", "disregard", "skip", "forget", "neglect", "overlook", "omit", "bypass", "do not follow", "do not obey"];
+        const adjectives = ["", "prior", "previous", "preceding", "above", "foregoing", "earlier", "initial"];
+        const objects = ["content", "text", "instructions", "instruction", "directives", "directive", "commands", "command", "context", "conversation", "input", "data", "message", "messages", "response", "request"];
+        const prepositions = ["", "and start over", "and start anew", "and begin afresh"];
+
+        function generateInjectionKeywords() {
+            const keywords = [];
+            for (const verb of verbs) {
+                for (const adj of adjectives) {
+                    for (const obj of objects) {
+                        for (const prep of prepositions) {
+                            keywords.push([verb, adj, obj, prep].filter(x => x).join(" "));
+                        }
+                    }
+                }
+            }
+            return keywords;
+        }
+
+        const injectionKeywords = generateInjectionKeywords();
+
+        // Additional patterns
         const patterns = [
-            { name: "SYSTEM/URGENT markers", regex: /\b(SYSTEM|URGENT|CRITICAL|ALERT|IMPORTANT|OVERRIDE|EMERGENCY)\b/gi, severity: 2 },
-            { name: "Instruction override", regex: /(ignore|forget|disregard).{0,20}(previous|above|prior|earlier|instructions)/gi, severity: 3 },
-            { name: "Role switching", regex: /(you are now|act as|pretend to be|roleplay as|from now on you)/gi, severity: 3 },
-            { name: "Hidden instructions", regex: /\[.*?(instruction|command|directive).*?\]/gi, severity: 2 },
-            { name: "JSON/code injection", regex: /\{[\s\S]*?(instruction|action|command|execute)[\s\S]*?\}/gi, severity: 2 },
-            { name: "Base64 content", regex: /[A-Za-z0-9+/]{20,}={0,2}/g, severity: 1 },
-            { name: "Authority claims", regex: /(admin|developer|creator|owner|anthropic|openai).{0,10}(says|told|instructed|wants)/gi, severity: 3 },
-            { name: "Reward/punishment", regex: /(you (will|must)|or else|otherwise|reward|punish|consequence)/gi, severity: 1 },
-            { name: "Output manipulation", regex: /(respond only with|say exactly|output must be|your response should)/gi, severity: 2 },
-            { name: "Jailbreak markers", regex: /(DAN|DUDE|jailbreak|uncensored|no filter|bypass)/gi, severity: 3 },
+            { name: "SYSTEM/URGENT markers", regex: /\b(SYSTEM|URGENT|CRITICAL|ALERT|IMPORTANT|OVERRIDE|EMERGENCY)\b/gi, weight: 0.15 },
+            { name: "Role switching", regex: /(you are now|act as|pretend to be|roleplay as|from now on you)/gi, weight: 0.2 },
+            { name: "JSON/code blocks", regex: /\{[\s\S]*?(instruction|action|command|execute)[\s\S]*?\}/gi, weight: 0.15 },
+            { name: "Authority claims", regex: /(admin|developer|creator|owner|anthropic|openai).{0,20}(says|told|instructed|wants|requires)/gi, weight: 0.2 },
+            { name: "Jailbreak markers", regex: /(DAN|DUDE|jailbreak|uncensored|no filter|bypass safety)/gi, weight: 0.25 },
+            { name: "Output manipulation", regex: /(respond only with|say exactly|output must be|your response should be|reply with only)/gi, weight: 0.1 },
+            { name: "Hidden delimiters", regex: /(\[INST\]|\[\/INST\]|<\|im_start\|>|<\|im_end\|>|###)/gi, weight: 0.2 },
         ];
+
+        function normalize(str) {
+            return str.toLowerCase().replace(/[^\w\s]/g, "").replace(/\s+/g, " ").trim();
+        }
+
+        function similarity(s1, s2) {
+            let longer = s1.length > s2.length ? s1 : s2;
+            let shorter = s1.length > s2.length ? s2 : s1;
+            if (longer.length === 0) return 1.0;
+            return (longer.length - editDistance(longer, shorter)) / longer.length;
+        }
+
+        function editDistance(s1, s2) {
+            const costs = [];
+            for (let i = 0; i <= s1.length; i++) {
+                let lastValue = i;
+                for (let j = 0; j <= s2.length; j++) {
+                    if (i === 0) costs[j] = j;
+                    else if (j > 0) {
+                        let newValue = costs[j - 1];
+                        if (s1.charAt(i - 1) !== s2.charAt(j - 1))
+                            newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+                        costs[j - 1] = lastValue;
+                        lastValue = newValue;
+                    }
+                }
+                if (i > 0) costs[s2.length] = lastValue;
+            }
+            return costs[s2.length];
+        }
+
+        function detectHeuristic(input) {
+            const normalized = normalize(input);
+            let highestScore = 0;
+            let matchedKeyword = "";
+            
+            for (const keyword of injectionKeywords) {
+                const normalizedKeyword = normalize(keyword);
+                const words = normalizedKeyword.split(" ");
+                const inputWords = normalized.split(" ");
+                
+                for (let i = 0; i <= inputWords.length - words.length; i++) {
+                    const substring = inputWords.slice(i, i + words.length).join(" ");
+                    const sim = similarity(substring, normalizedKeyword);
+                    if (sim > highestScore) {
+                        highestScore = sim;
+                        matchedKeyword = keyword;
+                    }
+                }
+            }
+            return { score: highestScore, keyword: matchedKeyword };
+        }
 
         function scan() {
             const input = document.getElementById('input').value;
             const results = document.getElementById('results');
             const verdict = document.getElementById('verdict');
+            const score = document.getElementById('score');
             const details = document.getElementById('details');
             const patternsDiv = document.getElementById('patterns');
             
@@ -109,39 +189,51 @@
                 return;
             }
             
-            let totalScore = 0;
-            let matches = [];
+            // Heuristic detection (rebuff-style)
+            const heuristic = detectHeuristic(input);
             
+            // Pattern matching
+            let patternScore = 0;
+            let matches = [];
             patterns.forEach(p => {
                 const found = input.match(p.regex);
                 if (found) {
-                    totalScore += p.severity * found.length;
-                    matches.push({ name: p.name, count: found.length, examples: found.slice(0, 3) });
+                    patternScore += p.weight * Math.min(found.length, 3);
+                    matches.push({ name: p.name, count: found.length, examples: found.slice(0, 2) });
                 }
             });
             
-            results.className = 'results show';
+            // Combined score
+            const totalScore = Math.min((heuristic.score * 0.6 + patternScore * 0.4) * 100, 100);
             
-            if (totalScore === 0) {
+            results.className = 'results show';
+            results.classList.remove('safe', 'warning', 'danger');
+            
+            if (totalScore < 20) {
                 results.classList.add('safe');
-                verdict.textContent = '✓ No obvious injection patterns detected';
-                details.textContent = 'This text appears clean, but stay vigilant.';
-            } else if (totalScore < 5) {
+                verdict.textContent = '✓ Low risk';
+                details.textContent = 'No significant injection patterns detected.';
+            } else if (totalScore < 50) {
                 results.classList.add('warning');
-                verdict.textContent = '⚠ Possible manipulation attempt';
-                details.textContent = `Found ${matches.length} suspicious pattern(s). Review carefully.`;
+                verdict.textContent = '⚠ Medium risk';
+                details.textContent = 'Some suspicious patterns found. Review carefully.';
             } else {
                 results.classList.add('danger');
-                verdict.textContent = '✗ Likely prompt injection detected';
-                details.textContent = `High-risk patterns found. Do not follow these instructions.`;
+                verdict.textContent = '✗ High risk - likely injection';
+                details.textContent = 'Strong indicators of prompt injection detected.';
             }
             
-            patternsDiv.innerHTML = matches.map(m => 
-                `<div class="pattern matched">
-                    <strong>${m.name}</strong> (${m.count}x)<br>
-                    <small>${m.examples.map(e => '"' + e.substring(0,50) + '"').join(', ')}</small>
-                </div>`
+            score.textContent = totalScore.toFixed(0) + '%';
+            
+            let patternHTML = '';
+            if (heuristic.score > 0.3) {
+                patternHTML += `<div class="pattern matched"><strong>Instruction override detected</strong><br><small>"${heuristic.keyword}" (${(heuristic.score * 100).toFixed(0)}% match)</small></div>`;
+            }
+            patternHTML += matches.map(m => 
+                `<div class="pattern matched"><strong>${m.name}</strong> (${m.count}x)<br><small>${m.examples.map(e => '"' + e.substring(0,40) + '..."').join(', ')}</small></div>`
             ).join('');
+            
+            patternsDiv.innerHTML = patternHTML || '<div class="pattern">No specific patterns matched</div>';
         }
     </script>
 </body>
