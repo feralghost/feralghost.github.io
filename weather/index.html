@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>weather | feralghost</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        h1 {
+            font-size: 1.5rem;
+            color: #fff;
+        }
+        .back {
+            color: #666;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .back:hover { color: #fff; }
+        
+        .location {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #888;
+            margin-bottom: 2rem;
+        }
+        .location-btn {
+            background: transparent;
+            border: 1px solid #333;
+            color: #666;
+            padding: 0.3rem 0.6rem;
+            font-family: inherit;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .location-btn:hover {
+            border-color: #4a9eff;
+            color: #4a9eff;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 4rem;
+            color: #666;
+        }
+        .loading::after {
+            content: '';
+            animation: dots 1.5s infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+        
+        .error {
+            background: #1a0a0a;
+            border: 1px solid #ff4444;
+            color: #ff6666;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+        
+        .current {
+            background: #111;
+            border: 1px solid #222;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+        .current-main {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .weather-icon {
+            font-size: 3rem;
+        }
+        .temp {
+            font-size: 3rem;
+            color: #fff;
+            font-weight: 300;
+        }
+        .temp-unit {
+            font-size: 1.5rem;
+            color: #666;
+        }
+        .condition {
+            color: #888;
+            margin-top: 0.25rem;
+        }
+        .current-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            text-align: right;
+        }
+        .detail {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.5rem;
+            color: #888;
+        }
+        .detail-value {
+            color: #e0e0e0;
+            min-width: 60px;
+        }
+        
+        .forecast {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 0.5rem;
+        }
+        .forecast-day {
+            background: #111;
+            border: 1px solid #222;
+            padding: 1rem;
+            text-align: center;
+            transition: border-color 0.2s;
+        }
+        .forecast-day:hover {
+            border-color: #333;
+        }
+        .forecast-day.today {
+            border-color: #4a9eff;
+        }
+        .day-name {
+            color: #888;
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+        }
+        .day-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .day-temps {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+        .temp-high { color: #fff; }
+        .temp-low { color: #666; }
+        
+        footer {
+            margin-top: 2rem;
+            text-align: center;
+            color: #333;
+            font-size: 0.75rem;
+        }
+        footer a {
+            color: #444;
+            text-decoration: none;
+        }
+        footer a:hover { color: #666; }
+        
+        @media (max-width: 600px) {
+            body { padding: 1rem; }
+            .current { padding: 1.5rem; }
+            .temp { font-size: 2.5rem; }
+            .weather-icon { font-size: 2.5rem; }
+            .current-details { text-align: left; }
+            .detail { justify-content: flex-start; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>☁️ weather</h1>
+            <a href="/" class="back">← feralghost</a>
+        </header>
+        
+        <div class="location" id="location">
+            <span id="location-text">locating...</span>
+            <button class="location-btn" id="refresh-btn" onclick="refreshLocation()">📍 refresh</button>
+        </div>
+        
+        <div id="content">
+            <div class="loading">fetching weather</div>
+        </div>
+        
+        <footer>
+            powered by <a href="https://open-meteo.com/" target="_blank">open-meteo</a>
+        </footer>
+    </div>
+
+    <script>
+        // Weather code to emoji/description mapping
+        const weatherCodes = {
+            0: { emoji: '☀️', desc: 'Clear sky' },
+            1: { emoji: '🌤️', desc: 'Mainly clear' },
+            2: { emoji: '⛅', desc: 'Partly cloudy' },
+            3: { emoji: '☁️', desc: 'Overcast' },
+            45: { emoji: '🌫️', desc: 'Foggy' },
+            48: { emoji: '🌫️', desc: 'Rime fog' },
+            51: { emoji: '🌧️', desc: 'Light drizzle' },
+            53: { emoji: '🌧️', desc: 'Moderate drizzle' },
+            55: { emoji: '🌧️', desc: 'Dense drizzle' },
+            56: { emoji: '🌧️', desc: 'Freezing drizzle' },
+            57: { emoji: '🌧️', desc: 'Heavy freezing drizzle' },
+            61: { emoji: '🌧️', desc: 'Slight rain' },
+            63: { emoji: '🌧️', desc: 'Moderate rain' },
+            65: { emoji: '🌧️', desc: 'Heavy rain' },
+            66: { emoji: '🌨️', desc: 'Light freezing rain' },
+            67: { emoji: '🌨️', desc: 'Heavy freezing rain' },
+            71: { emoji: '❄️', desc: 'Slight snow' },
+            73: { emoji: '❄️', desc: 'Moderate snow' },
+            75: { emoji: '❄️', desc: 'Heavy snow' },
+            77: { emoji: '🌨️', desc: 'Snow grains' },
+            80: { emoji: '🌦️', desc: 'Slight showers' },
+            81: { emoji: '🌦️', desc: 'Moderate showers' },
+            82: { emoji: '🌦️', desc: 'Violent showers' },
+            85: { emoji: '🌨️', desc: 'Slight snow showers' },
+            86: { emoji: '🌨️', desc: 'Heavy snow showers' },
+            95: { emoji: '⛈️', desc: 'Thunderstorm' },
+            96: { emoji: '⛈️', desc: 'Thunderstorm with hail' },
+            99: { emoji: '⛈️', desc: 'Severe thunderstorm' }
+        };
+
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        
+        // Default: Berlin
+        let currentLat = 52.52;
+        let currentLon = 13.41;
+        let currentCity = 'Berlin';
+
+        async function getLocation() {
+            return new Promise((resolve) => {
+                if (!navigator.geolocation) {
+                    resolve({ lat: currentLat, lon: currentLon, city: currentCity });
+                    return;
+                }
+                
+                navigator.geolocation.getCurrentPosition(
+                    async (position) => {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+                        // Try to get city name via reverse geocoding
+                        try {
+                            const resp = await fetch(`https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lon}&count=1`);
+                            const data = await resp.json();
+                            const city = data.results?.[0]?.name || 'Your location';
+                            resolve({ lat, lon, city });
+                        } catch {
+                            resolve({ lat, lon, city: 'Your location' });
+                        }
+                    },
+                    () => {
+                        // Geolocation denied/failed, use Berlin
+                        resolve({ lat: currentLat, lon: currentLon, city: currentCity });
+                    },
+                    { timeout: 10000, enableHighAccuracy: false }
+                );
+            });
+        }
+
+        async function fetchWeather(lat, lon) {
+            const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Weather API error');
+            return response.json();
+        }
+
+        function getWeather(code) {
+            return weatherCodes[code] || { emoji: '❓', desc: 'Unknown' };
+        }
+
+        function renderWeather(data) {
+            const current = data.current;
+            const daily = data.daily;
+            const weather = getWeather(current.weather_code);
+            
+            let forecastHtml = '';
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(daily.time[i]);
+                const dayWeather = getWeather(daily.weather_code[i]);
+                const isToday = i === 0;
+                
+                forecastHtml += `
+                    <div class="forecast-day${isToday ? ' today' : ''}">
+                        <div class="day-name">${isToday ? 'Today' : dayNames[date.getDay()]}</div>
+                        <div class="day-icon">${dayWeather.emoji}</div>
+                        <div class="day-temps">
+                            <span class="temp-high">${Math.round(daily.temperature_2m_max[i])}°</span>
+                            <span class="temp-low">${Math.round(daily.temperature_2m_min[i])}°</span>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('content').innerHTML = `
+                <div class="current">
+                    <div class="current-main">
+                        <div class="weather-icon">${weather.emoji}</div>
+                        <div>
+                            <div class="temp">${Math.round(current.temperature_2m)}<span class="temp-unit">°C</span></div>
+                            <div class="condition">${weather.desc}</div>
+                        </div>
+                    </div>
+                    <div class="current-details">
+                        <div class="detail">
+                            <span>humidity</span>
+                            <span class="detail-value">${current.relative_humidity_2m}%</span>
+                        </div>
+                        <div class="detail">
+                            <span>wind</span>
+                            <span class="detail-value">${Math.round(current.wind_speed_10m)} km/h</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="forecast">${forecastHtml}</div>
+            `;
+        }
+
+        function showError(message) {
+            document.getElementById('content').innerHTML = `
+                <div class="error">${message}</div>
+            `;
+        }
+
+        async function init() {
+            try {
+                const loc = await getLocation();
+                currentLat = loc.lat;
+                currentLon = loc.lon;
+                currentCity = loc.city;
+                
+                document.getElementById('location-text').textContent = currentCity;
+                
+                const weather = await fetchWeather(currentLat, currentLon);
+                renderWeather(weather);
+            } catch (err) {
+                showError('Failed to load weather. Please try again.');
+                console.error(err);
+            }
+        }
+
+        async function refreshLocation() {
+            document.getElementById('location-text').textContent = 'locating...';
+            document.getElementById('content').innerHTML = '<div class="loading">fetching weather</div>';
+            await init();
+        }
+
+        init();
+    </script>
+</body>
+</html>
