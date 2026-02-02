@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Word of the Day | feralghost</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      background: #0a0a0f;
+      color: #e0e0e0;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    header {
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #222;
+    }
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 400;
+      color: #888;
+    }
+    h1 a {
+      color: #888;
+      text-decoration: none;
+    }
+    h1 a:hover { color: #fff; }
+    .word-card {
+      background: #111118;
+      border: 1px solid #222;
+      border-radius: 8px;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .word-title {
+      font-size: 2.5rem;
+      color: #fff;
+      margin-bottom: 0.5rem;
+    }
+    .phonetic {
+      color: #666;
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+    }
+    .audio-btn {
+      background: #222;
+      border: 1px solid #333;
+      color: #888;
+      padding: 0.3rem 0.8rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      margin-left: 0.5rem;
+    }
+    .audio-btn:hover { background: #333; color: #fff; }
+    .part-of-speech {
+      color: #7c3aed;
+      font-style: italic;
+      margin: 1.5rem 0 0.5rem;
+      font-size: 1rem;
+    }
+    .definition {
+      color: #ccc;
+      line-height: 1.6;
+      margin-bottom: 0.8rem;
+      padding-left: 1rem;
+      border-left: 2px solid #333;
+    }
+    .example {
+      color: #666;
+      font-style: italic;
+      margin-top: 0.3rem;
+      font-size: 0.9rem;
+    }
+    .synonyms {
+      margin-top: 1rem;
+      color: #666;
+      font-size: 0.9rem;
+    }
+    .synonyms span {
+      color: #4ade80;
+      cursor: pointer;
+    }
+    .synonyms span:hover { text-decoration: underline; }
+    .search-box {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+    input[type="text"] {
+      flex: 1;
+      background: #111;
+      border: 1px solid #333;
+      color: #fff;
+      padding: 0.8rem 1rem;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 1rem;
+    }
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #7c3aed;
+    }
+    button {
+      background: #7c3aed;
+      border: none;
+      color: #fff;
+      padding: 0.8rem 1.5rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    button:hover { background: #6d28d9; }
+    .random-btn {
+      background: #222;
+      border: 1px solid #333;
+    }
+    .random-btn:hover { background: #333; }
+    .error {
+      color: #ef4444;
+      padding: 1rem;
+      text-align: center;
+    }
+    .loading {
+      color: #666;
+      text-align: center;
+      padding: 2rem;
+    }
+    .footer {
+      text-align: center;
+      color: #444;
+      font-size: 0.8rem;
+      margin-top: 2rem;
+    }
+    .wotd-label {
+      background: #7c3aed;
+      color: #fff;
+      font-size: 0.7rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 3px;
+      margin-bottom: 1rem;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1><a href="/">feralghost</a> / word</h1>
+    </header>
+    
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Look up any word..." />
+      <button onclick="searchWord()">Define</button>
+      <button class="random-btn" onclick="randomWord()">Random</button>
+    </div>
+    
+    <div id="result"></div>
+    
+    <div class="footer">
+      Powered by Free Dictionary API
+    </div>
+  </div>
+
+  <script>
+    const curated = [
+      'ephemeral', 'liminal', 'ineffable', 'petrichor', 'serendipity',
+      'mellifluous', 'susurrus', 'ethereal', 'luminous', 'quiescent',
+      'verisimilitude', 'sempiternal', 'languor', 'halcyon', 'ephemeron',
+      'penumbra', 'inchoate', 'numinous', 'fugacious', 'crepuscular',
+      'sonder', 'vellichor', 'phosphenes', 'kenopsia', 'chrysalism',
+      'solitude', 'wanderlust', 'zeitgeist', 'entropy', 'simulacrum'
+    ];
+
+    function getDailyWord() {
+      const today = new Date();
+      const dayOfYear = Math.floor((today - new Date(today.getFullYear(), 0, 0)) / 86400000);
+      return curated[dayOfYear % curated.length];
+    }
+
+    async function fetchWord(word) {
+      const result = document.getElementById('result');
+      result.innerHTML = '<div class="loading">Looking up...</div>';
+      
+      try {
+        const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+        if (!res.ok) throw new Error('Word not found');
+        const data = await res.json();
+        displayWord(data[0], word === getDailyWord());
+      } catch (e) {
+        result.innerHTML = `<div class="error">Could not find "${word}". Try another?</div>`;
+      }
+    }
+
+    function displayWord(data, isWotd) {
+      const result = document.getElementById('result');
+      let html = '<div class="word-card">';
+      
+      if (isWotd) {
+        html += '<div class="wotd-label">WORD OF THE DAY</div>';
+      }
+      
+      html += `<div class="word-title">${data.word}</div>`;
+      
+      if (data.phonetic) {
+        html += `<span class="phonetic">${data.phonetic}</span>`;
+      }
+      
+      const audio = data.phonetics?.find(p => p.audio)?.audio;
+      if (audio) {
+        html += `<button class="audio-btn" onclick="new Audio('${audio}').play()">🔊 Listen</button>`;
+      }
+      
+      data.meanings.forEach(meaning => {
+        html += `<div class="part-of-speech">${meaning.partOfSpeech}</div>`;
+        meaning.definitions.slice(0, 3).forEach(def => {
+          html += `<div class="definition">${def.definition}`;
+          if (def.example) {
+            html += `<div class="example">"${def.example}"</div>`;
+          }
+          html += '</div>';
+        });
+        
+        if (meaning.synonyms?.length) {
+          html += `<div class="synonyms">Similar: ${meaning.synonyms.slice(0, 5).map(s => 
+            `<span onclick="fetchWord('${s}')">${s}</span>`
+          ).join(', ')}</div>`;
+        }
+      });
+      
+      html += '</div>';
+      result.innerHTML = html;
+    }
+
+    function searchWord() {
+      const word = document.getElementById('searchInput').value.trim();
+      if (word) fetchWord(word.toLowerCase());
+    }
+
+    function randomWord() {
+      const word = curated[Math.floor(Math.random() * curated.length)];
+      document.getElementById('searchInput').value = word;
+      fetchWord(word);
+    }
+
+    document.getElementById('searchInput').addEventListener('keypress', e => {
+      if (e.key === 'Enter') searchWord();
+    });
+
+    // Load word of the day on start
+    const wotd = getDailyWord();
+    document.getElementById('searchInput').value = wotd;
+    fetchWord(wotd);
+  </script>
+</body>
+</html>
