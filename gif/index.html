@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GIF Search | feralghost</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      background: #0a0a0f;
+      color: #e0e0e0;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+    header {
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #222;
+    }
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 400;
+      color: #888;
+    }
+    h1 a { color: #888; text-decoration: none; }
+    h1 a:hover { color: #fff; }
+    .search-box {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+    input[type="text"] {
+      flex: 1;
+      padding: 0.8rem 1rem;
+      background: #111118;
+      border: 1px solid #333;
+      border-radius: 6px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 1rem;
+    }
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #555;
+    }
+    button {
+      padding: 0.8rem 1.5rem;
+      background: #222;
+      border: 1px solid #333;
+      border-radius: 6px;
+      color: #fff;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    button:hover { background: #333; }
+    .tabs {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .tab {
+      padding: 0.5rem 1rem;
+      background: transparent;
+      border: 1px solid #333;
+      border-radius: 4px;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tab:hover { color: #fff; }
+    .tab.active {
+      background: #222;
+      color: #fff;
+      border-color: #444;
+    }
+    .results {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    .gif-card {
+      position: relative;
+      background: #111118;
+      border: 1px solid #222;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .gif-card:hover {
+      border-color: #444;
+      transform: translateY(-2px);
+    }
+    .gif-card img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      display: block;
+    }
+    .gif-title {
+      padding: 0.5rem;
+      font-size: 0.75rem;
+      color: #666;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .loading {
+      text-align: center;
+      color: #666;
+      padding: 2rem;
+    }
+    .error {
+      text-align: center;
+      color: #ff6b6b;
+      padding: 2rem;
+    }
+    .copied-toast {
+      position: fixed;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #333;
+      color: #fff;
+      padding: 0.8rem 1.5rem;
+      border-radius: 6px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .copied-toast.show { opacity: 1; }
+    .hint {
+      color: #444;
+      font-size: 0.8rem;
+      text-align: center;
+      margin-top: 1rem;
+    }
+    @media (max-width: 600px) {
+      .results { grid-template-columns: repeat(2, 1fr); }
+      .gif-card img { height: 120px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1><a href="/">feralghost</a> / gif search</h1>
+    </header>
+    
+    <div class="search-box">
+      <input type="text" id="search" placeholder="search for gifs..." autocomplete="off">
+      <button onclick="searchGifs()">search</button>
+    </div>
+    
+    <div class="tabs">
+      <button class="tab active" data-mode="trending" onclick="setMode('trending')">trending</button>
+      <button class="tab" data-mode="search" onclick="setMode('search')">search results</button>
+    </div>
+    
+    <div id="results" class="results"></div>
+    <p id="hint" class="hint">click a gif to copy its url</p>
+  </div>
+  
+  <div id="toast" class="copied-toast">copied to clipboard!</div>
+  
+  <script>
+    const API_KEY = 'dc6zaTOxFJmzC'; // Giphy public beta key
+    const BASE = 'https://api.giphy.com/v1/gifs';
+    let mode = 'trending';
+    let lastQuery = '';
+    
+    async function fetchGifs(endpoint, params = {}) {
+      const results = document.getElementById('results');
+      results.innerHTML = '<div class="loading">loading...</div>';
+      
+      try {
+        const url = new URL(`${BASE}/${endpoint}`);
+        url.searchParams.set('api_key', API_KEY);
+        url.searchParams.set('limit', '24');
+        url.searchParams.set('rating', 'g');
+        Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+        
+        const res = await fetch(url);
+        const data = await res.json();
+        
+        if (data.data && data.data.length > 0) {
+          results.innerHTML = data.data.map(gif => `
+            <div class="gif-card" onclick="copyUrl('${gif.images.original.url}')" title="${gif.title || 'GIF'}">
+              <img src="${gif.images.fixed_height.url}" alt="${gif.title || 'GIF'}" loading="lazy">
+              <div class="gif-title">${gif.title || 'untitled'}</div>
+            </div>
+          `).join('');
+        } else {
+          results.innerHTML = '<div class="error">no gifs found</div>';
+        }
+      } catch (e) {
+        results.innerHTML = '<div class="error">failed to load gifs</div>';
+        console.error(e);
+      }
+    }
+    
+    function searchGifs() {
+      const query = document.getElementById('search').value.trim();
+      if (!query) return;
+      lastQuery = query;
+      setMode('search');
+      fetchGifs('search', { q: query });
+    }
+    
+    function setMode(m) {
+      mode = m;
+      document.querySelectorAll('.tab').forEach(t => {
+        t.classList.toggle('active', t.dataset.mode === m);
+      });
+      
+      if (m === 'trending') {
+        fetchGifs('trending');
+      } else if (lastQuery) {
+        fetchGifs('search', { q: lastQuery });
+      }
+    }
+    
+    function copyUrl(url) {
+      navigator.clipboard.writeText(url).then(() => {
+        const toast = document.getElementById('toast');
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+      });
+    }
+    
+    // Enter key to search
+    document.getElementById('search').addEventListener('keypress', e => {
+      if (e.key === 'Enter') searchGifs();
+    });
+    
+    // Load trending on start
+    fetchGifs('trending');
+  </script>
+</body>
+</html>
