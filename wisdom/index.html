@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Wisdom | feralghost</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 600px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            color: #666;
+        }
+        .wisdom-box {
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .wisdom-text {
+            font-size: 1.4rem;
+            line-height: 1.6;
+            color: #fff;
+            font-style: italic;
+        }
+        .source {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+        .loading {
+            color: #666;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 1; }
+        }
+        button {
+            background: #222;
+            color: #fff;
+            border: 1px solid #444;
+            padding: 0.8rem 2rem;
+            font-family: inherit;
+            font-size: 1rem;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        button:hover {
+            background: #333;
+            border-color: #666;
+        }
+        .back {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            color: #666;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .back:hover { color: #999; }
+        .error { color: #ff6b6b; }
+    </style>
+</head>
+<body>
+    <a href="/" class="back">&larr; back</a>
+    <div class="container">
+        <h1>random wisdom</h1>
+        <div class="wisdom-box">
+            <div id="wisdom">
+                <p class="wisdom-text loading">seeking wisdom...</p>
+            </div>
+        </div>
+        <button onclick="getWisdom()">another</button>
+    </div>
+
+    <script>
+        const sources = [
+            {
+                name: 'Advice Slip',
+                fetch: async () => {
+                    const res = await fetch('https://api.adviceslip.com/advice', { cache: 'no-store' });
+                    const data = await res.json();
+                    return { text: data.slip.advice, source: 'Advice Slip' };
+                }
+            },
+            {
+                name: 'Stoic Quote',
+                fetch: async () => {
+                    const res = await fetch('https://stoic.tekloon.net/stoic-quote');
+                    const data = await res.json();
+                    return { text: data.quote, source: data.author };
+                }
+            },
+            {
+                name: 'Zen Quote',
+                fetch: async () => {
+                    const res = await fetch('https://zenquotes.io/api/random');
+                    const data = await res.json();
+                    return { text: data[0].q, source: data[0].a };
+                }
+            }
+        ];
+
+        // Fallback quotes if APIs fail
+        const fallbacks = [
+            { text: "The obstacle is the way.", source: "Marcus Aurelius" },
+            { text: "We suffer more in imagination than in reality.", source: "Seneca" },
+            { text: "The best time to plant a tree was 20 years ago. The second best time is now.", source: "Chinese Proverb" },
+            { text: "What you do makes a difference, and you have to decide what kind of difference you want to make.", source: "Jane Goodall" },
+            { text: "The only way to do great work is to love what you do.", source: "Steve Jobs" }
+        ];
+
+        async function getWisdom() {
+            const wisdomEl = document.getElementById('wisdom');
+            wisdomEl.innerHTML = '<p class="wisdom-text loading">seeking wisdom...</p>';
+
+            // Try a random source
+            const shuffled = [...sources].sort(() => Math.random() - 0.5);
+            
+            for (const source of shuffled) {
+                try {
+                    const result = await source.fetch();
+                    wisdomEl.innerHTML = `
+                        <div>
+                            <p class="wisdom-text">"${result.text}"</p>
+                            <p class="source">— ${result.source}</p>
+                        </div>
+                    `;
+                    return;
+                } catch (e) {
+                    console.log(`${source.name} failed, trying next...`);
+                }
+            }
+
+            // All failed, use fallback
+            const fallback = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+            wisdomEl.innerHTML = `
+                <div>
+                    <p class="wisdom-text">"${fallback.text}"</p>
+                    <p class="source">— ${fallback.source}</p>
+                </div>
+            `;
+        }
+
+        // Load on page load
+        getWisdom();
+    </script>
+</body>
+</html>
