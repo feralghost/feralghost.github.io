@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Text Analyzer | feralghost</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      background: #0a0a0f;
+      color: #e0e0e0;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+    .container { max-width: 900px; margin: 0 auto; }
+    h1 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      color: #fff;
+    }
+    .subtitle {
+      color: #666;
+      margin-bottom: 2rem;
+      font-size: 0.9rem;
+    }
+    textarea {
+      width: 100%;
+      height: 300px;
+      background: #111118;
+      border: 1px solid #222;
+      color: #e0e0e0;
+      padding: 1rem;
+      font-family: inherit;
+      font-size: 1rem;
+      resize: vertical;
+      border-radius: 4px;
+    }
+    textarea:focus { outline: none; border-color: #444; }
+    textarea::placeholder { color: #444; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    .stat {
+      background: #111118;
+      border: 1px solid #222;
+      padding: 1rem;
+      border-radius: 4px;
+    }
+    .stat-value {
+      font-size: 1.8rem;
+      color: #fff;
+      font-weight: bold;
+    }
+    .stat-label {
+      color: #666;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 0.25rem;
+    }
+    .extras {
+      margin-top: 2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    .extra {
+      background: #111118;
+      border: 1px solid #222;
+      padding: 1rem;
+      border-radius: 4px;
+    }
+    .extra-title {
+      color: #888;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+    .extra-value {
+      color: #e0e0e0;
+      font-size: 0.9rem;
+    }
+    .back {
+      display: inline-block;
+      margin-top: 2rem;
+      color: #666;
+      text-decoration: none;
+      font-size: 0.9rem;
+    }
+    .back:hover { color: #888; }
+    .top-words { line-height: 1.6; }
+    .freq-bar {
+      display: inline-block;
+      height: 8px;
+      background: #333;
+      margin-left: 0.5rem;
+      vertical-align: middle;
+      border-radius: 2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Text Analyzer</h1>
+    <p class="subtitle">Paste or type text. Stats update live.</p>
+    
+    <textarea id="input" placeholder="Start typing or paste your text here..."></textarea>
+    
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-value" id="chars">0</div>
+        <div class="stat-label">Characters</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="chars-no-space">0</div>
+        <div class="stat-label">Chars (no spaces)</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="words">0</div>
+        <div class="stat-label">Words</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="sentences">0</div>
+        <div class="stat-label">Sentences</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="paragraphs">0</div>
+        <div class="stat-label">Paragraphs</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="lines">0</div>
+        <div class="stat-label">Lines</div>
+      </div>
+    </div>
+    
+    <div class="extras">
+      <div class="extra">
+        <div class="extra-title">Reading Time</div>
+        <div class="extra-value" id="read-time">0 min</div>
+      </div>
+      <div class="extra">
+        <div class="extra-title">Speaking Time</div>
+        <div class="extra-value" id="speak-time">0 min</div>
+      </div>
+      <div class="extra">
+        <div class="extra-title">Avg Word Length</div>
+        <div class="extra-value" id="avg-word">0 chars</div>
+      </div>
+      <div class="extra">
+        <div class="extra-title">Avg Sentence Length</div>
+        <div class="extra-value" id="avg-sentence">0 words</div>
+      </div>
+    </div>
+    
+    <div class="extras">
+      <div class="extra" style="grid-column: 1 / -1;">
+        <div class="extra-title">Top Words</div>
+        <div class="extra-value top-words" id="top-words">-</div>
+      </div>
+    </div>
+    
+    <a href="/" class="back">&larr; back to feralghost</a>
+  </div>
+  
+  <script>
+    const input = document.getElementById('input');
+    const stopWords = new Set(['the','a','an','and','or','but','in','on','at','to','for','of','with','by','from','is','are','was','were','be','been','being','have','has','had','do','does','did','will','would','could','should','may','might','must','shall','can','this','that','these','those','it','its','i','you','he','she','we','they','me','him','her','us','them','my','your','his','our','their','what','which','who','whom','as','if','then','so','no','not','just','also','very','only','even','back','now','here','there','when','where','why','how','all','each','every','both','few','more','most','other','some','such','any','own','same','than','too','into','over','after','before','between','under','again','further','once']);
+    
+    function analyze() {
+      const text = input.value;
+      
+      // Basic counts
+      document.getElementById('chars').textContent = text.length.toLocaleString();
+      document.getElementById('chars-no-space').textContent = text.replace(/\s/g, '').length.toLocaleString();
+      
+      // Words
+      const words = text.trim() ? text.trim().split(/\s+/).filter(w => w.length > 0) : [];
+      document.getElementById('words').textContent = words.length.toLocaleString();
+      
+      // Sentences (rough: split on . ! ?)
+      const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+      document.getElementById('sentences').textContent = sentences.length.toLocaleString();
+      
+      // Paragraphs
+      const paragraphs = text.split(/\n\s*\n/).filter(p => p.trim().length > 0);
+      document.getElementById('paragraphs').textContent = (text.trim() ? paragraphs.length : 0).toLocaleString();
+      
+      // Lines
+      const lines = text.split('\n');
+      document.getElementById('lines').textContent = lines.length.toLocaleString();
+      
+      // Reading time (238 wpm average)
+      const readMin = Math.ceil(words.length / 238);
+      document.getElementById('read-time').textContent = readMin < 1 ? '< 1 min' : `${readMin} min`;
+      
+      // Speaking time (150 wpm average)
+      const speakMin = Math.ceil(words.length / 150);
+      document.getElementById('speak-time').textContent = speakMin < 1 ? '< 1 min' : `${speakMin} min`;
+      
+      // Avg word length
+      const totalChars = words.reduce((sum, w) => sum + w.replace(/[^a-zA-Z]/g, '').length, 0);
+      const avgWord = words.length ? (totalChars / words.length).toFixed(1) : 0;
+      document.getElementById('avg-word').textContent = `${avgWord} chars`;
+      
+      // Avg sentence length
+      const avgSentence = sentences.length ? (words.length / sentences.length).toFixed(1) : 0;
+      document.getElementById('avg-sentence').textContent = `${avgSentence} words`;
+      
+      // Top words (excluding stop words)
+      const wordFreq = {};
+      words.forEach(w => {
+        const clean = w.toLowerCase().replace(/[^a-zA-Z']/g, '');
+        if (clean.length > 2 && !stopWords.has(clean)) {
+          wordFreq[clean] = (wordFreq[clean] || 0) + 1;
+        }
+      });
+      const sorted = Object.entries(wordFreq).sort((a, b) => b[1] - a[1]).slice(0, 8);
+      const maxFreq = sorted[0] ? sorted[0][1] : 1;
+      
+      if (sorted.length > 0) {
+        document.getElementById('top-words').innerHTML = sorted.map(([word, count]) => {
+          const width = Math.round((count / maxFreq) * 60);
+          return `<span>${word} (${count})</span><span class="freq-bar" style="width:${width}px"></span>`;
+        }).join('&nbsp;&nbsp; ');
+      } else {
+        document.getElementById('top-words').textContent = '-';
+      }
+    }
+    
+    input.addEventListener('input', analyze);
+    analyze();
+  </script>
+</body>
+</html>
