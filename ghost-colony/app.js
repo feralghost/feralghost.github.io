@@ -1,8 +1,10 @@
 // Ghost Colony - Frontend Client
 
-const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+const API_BASE = 'https://societies-enemies-vista-cooling.trycloudflare.com';
   ? 'http://localhost:8787'
   : 'https://ghost-colony.feralghost.workers.dev';
+
+const ASSET_BASE = '/ghost-colony';
 
 const MOOD_COLORS = {
   melancholic: '#4a6fa5',
@@ -51,7 +53,7 @@ function renderCreatures() {
   const el = document.getElementById('creaturesList');
   el.innerHTML = creatures.map(c => `
     <div class="creature-card" style="--mood-color: ${c.moodColor || MOOD_COLORS[c.mood] || '#555'}" data-id="${c.id}">
-      <img class="creature-avatar" src="${c.avatar}" alt="${c.name}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><circle cx=%2220%22 cy=%2220%22 r=%2220%22 fill=%22%23333%22/></svg>'">
+      <img class="creature-avatar" src="${ASSET_BASE}${c.avatar}" alt="${c.name}" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><circle cx=%2220%22 cy=%2220%22 r=%2220%22 fill=%22%23333%22/></svg>'">
       <div class="creature-info">
         <div class="creature-name">${c.name}</div>
         <div class="creature-mood">${MOOD_EMOJI[c.mood] || ''} ${c.mood?.replace('_', ' ') || 'unknown'}</div>
@@ -93,7 +95,7 @@ function renderCreatureMsg(msg) {
   const time = formatTime(msg.timestamp);
   return `
     <div class="msg" style="--mood-color: ${color}">
-      <img class="msg-avatar" src="${msg.avatar || ''}" alt="${msg.name}" onerror="this.style.display='none'">
+      <img class="msg-avatar" src="${ASSET_BASE}${msg.avatar || ''}" alt="${msg.name}" onerror="this.style.display='none'">
       <div class="msg-body">
         <div class="msg-header">
           <span class="msg-name" style="color: ${color}">${msg.name}</span>
@@ -111,7 +113,7 @@ function renderImageMsg(msg) {
   const time = formatTime(msg.timestamp);
   return `
     <div class="msg" style="--mood-color: ${color}">
-      <img class="msg-avatar" src="${msg.avatar || ''}" alt="${msg.name}" onerror="this.style.display='none'">
+      <img class="msg-avatar" src="${ASSET_BASE}${msg.avatar || ''}" alt="${msg.name}" onerror="this.style.display='none'">
       <div class="msg-body">
         <div class="msg-header">
           <span class="msg-name" style="color: ${color}">${msg.name}</span>
