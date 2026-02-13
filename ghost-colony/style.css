@@ -286,6 +286,57 @@ header h1 {
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* Creature Detail Panel */
+#creatureDetail {
+  display: none;
+  background: #12121e;
+  border: 1px solid #2a2a3e;
+  border-radius: 12px;
+  padding: 1rem;
+  margin-top: 0.5rem;
+  overflow-y: auto;
+  max-height: 50vh;
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.8rem;
+  position: relative;
+}
+
+.detail-header h3 { font-size: 1rem; color: #fff; }
+.detail-avatar { width: 36px; height: 36px; border-radius: 50%; }
+.detail-mood { font-size: 0.8rem; margin-left: auto; }
+.detail-close {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: none;
+  border: none;
+  color: #777;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+.detail-close:hover { color: #fff; }
+
+.detail-section { margin-bottom: 0.8rem; }
+.detail-label { font-size: 0.7rem; color: #8e44ad; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.3rem; }
+.detail-text { font-size: 0.85rem; color: #ccc; line-height: 1.4; }
+
+.detail-memories {
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.memory-entry {
+  font-size: 0.8rem;
+  color: #999;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid #1a1a2e;
+}
+
 /* Mobile */
 @media (max-width: 768px) {
   .colony-container {

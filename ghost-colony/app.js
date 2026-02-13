@@ -58,6 +58,51 @@ function renderCreatures() {
       </div>
     </div>
   `).join('');
+
+  // Click handlers for creature cards
+  el.querySelectorAll('.creature-card').forEach(card => {
+    card.addEventListener('click', () => showCreatureDetail(card.dataset.id));
+    card.style.cursor = 'pointer';
+  });
+}
+
+async function showCreatureDetail(creatureId) {
+  try {
+    const res = await fetch(`${API_BASE}/api/creatures/${creatureId}`);
+    const c = await res.json();
+
+    // Create or update detail panel
+    let panel = document.getElementById('creatureDetail');
+    if (!panel) {
+      panel = document.createElement('div');
+      panel.id = 'creatureDetail';
+      document.querySelector('.creatures-panel').appendChild(panel);
+    }
+
+    const memoryHtml = c.memory.length > 0
+      ? c.memory.map(m => `<div class="memory-entry">${escapeHtml(m.text)}</div>`).join('')
+      : '<div class="memory-entry" style="opacity:0.5">No memories yet</div>';
+
+    panel.innerHTML = `
+      <div class="detail-header">
+        <img src="${ASSET_BASE}${c.avatar}" class="detail-avatar" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><circle cx=%2220%22 cy=%2220%22 r=%2220%22 fill=%22%23333%22/></svg>'">
+        <h3>${c.name}</h3>
+        <span class="detail-mood" style="color:${c.moodColor}">${c.moodEmoji} ${c.mood.replace('_',' ')}</span>
+        <button class="detail-close" onclick="document.getElementById('creatureDetail').style.display='none'">&times;</button>
+      </div>
+      <div class="detail-section">
+        <div class="detail-label">Personality${c.hasEvolvedPersonality ? ' (evolved)' : ''}</div>
+        <div class="detail-text">${escapeHtml(c.personality)}</div>
+      </div>
+      <div class="detail-section">
+        <div class="detail-label">Memories (${c.memoryCount})</div>
+        <div class="detail-memories">${memoryHtml}</div>
+      </div>
+    `;
+    panel.style.display = 'block';
+  } catch (err) {
+    console.error('Failed to load creature detail:', err);
+  }
 }
 
 async function loadFeed() {
