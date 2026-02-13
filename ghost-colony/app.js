@@ -1,6 +1,6 @@
 // Ghost Colony - Frontend Client
 
-const API_BASE = 'https://societies-enemies-vista-cooling.trycloudflare.com';
+const API_BASE = 'https://deaf-soon-aaa-clearing.trycloudflare.com';
 
 const ASSET_BASE = '/ghost-colony';
 
