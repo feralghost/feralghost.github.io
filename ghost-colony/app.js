@@ -1,8 +1,6 @@
 // Ghost Colony - Frontend Client
 
 const API_BASE = 'https://societies-enemies-vista-cooling.trycloudflare.com';
-  ? 'http://localhost:8787'
-  : 'https://ghost-colony.feralghost.workers.dev';
 
 const ASSET_BASE = '/ghost-colony';
 
