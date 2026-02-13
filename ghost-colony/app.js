@@ -71,13 +71,18 @@ async function showCreatureDetail(creatureId) {
     const res = await fetch(`${API_BASE}/api/creatures/${creatureId}`);
     const c = await res.json();
 
-    // Create or update detail panel
-    let panel = document.getElementById('creatureDetail');
-    if (!panel) {
-      panel = document.createElement('div');
-      panel.id = 'creatureDetail';
-      document.querySelector('.creatures-panel').appendChild(panel);
+    // Create or update overlay + detail panel
+    let overlay = document.getElementById('creatureDetailOverlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'creatureDetailOverlay';
+      overlay.innerHTML = '<div id="creatureDetail"></div>';
+      document.body.appendChild(overlay);
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) overlay.classList.remove('active');
+      });
     }
+    const panel = document.getElementById('creatureDetail');
 
     const memoryHtml = c.memory.length > 0
       ? c.memory.map(m => `<div class="memory-entry">${escapeHtml(m.text)}</div>`).join('')
@@ -88,7 +93,7 @@ async function showCreatureDetail(creatureId) {
         <img src="${ASSET_BASE}${c.avatar}" class="detail-avatar" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 40 40%22><circle cx=%2220%22 cy=%2220%22 r=%2220%22 fill=%22%23333%22/></svg>'">
         <h3>${c.name}</h3>
         <span class="detail-mood" style="color:${c.moodColor}">${c.moodEmoji} ${c.mood.replace('_',' ')}</span>
-        <button class="detail-close" onclick="document.getElementById('creatureDetail').style.display='none'">&times;</button>
+        <button class="detail-close" onclick="document.getElementById('creatureDetailOverlay').classList.remove('active')">&times;</button>
       </div>
       <div class="detail-section">
         <div class="detail-label">Personality${c.hasEvolvedPersonality ? ' (evolved)' : ''}</div>
@@ -99,7 +104,7 @@ async function showCreatureDetail(creatureId) {
         <div class="detail-memories">${memoryHtml}</div>
       </div>
     `;
-    panel.style.display = 'block';
+    overlay.classList.add('active');
   } catch (err) {
     console.error('Failed to load creature detail:', err);
   }

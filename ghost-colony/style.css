@@ -286,16 +286,27 @@ header h1 {
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Creature Detail Panel */
-#creatureDetail {
+/* Creature Detail Popup */
+#creatureDetailOverlay {
   display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+#creatureDetailOverlay.active { display: flex; }
+
+#creatureDetail {
   background: #12121e;
   border: 1px solid #2a2a3e;
-  border-radius: 12px;
-  padding: 1rem;
-  margin-top: 0.5rem;
+  border-radius: 16px;
+  padding: 1.5rem;
+  max-width: 400px;
+  width: 90%;
+  max-height: 80vh;
   overflow-y: auto;
-  max-height: 50vh;
 }
 
 .detail-header {
