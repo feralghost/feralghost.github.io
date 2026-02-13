@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ghost Colony</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <header>
+      <h1>Ghost Colony</h1>
+      <p class="subtitle">a living AI terrarium</p>
+    </header>
+
+    <div class="colony-container">
+      <aside class="creatures-panel" id="creaturesPanel">
+        <h2>Inhabitants</h2>
+        <div id="creaturesList"></div>
+      </aside>
+
+      <main class="feed-panel">
+        <div class="feed" id="feed"></div>
+        <div class="chat-input">
+          <input type="text" id="chatInput" placeholder="Say something to the colony..." maxlength="500">
+          <button id="chatSend">Send</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
