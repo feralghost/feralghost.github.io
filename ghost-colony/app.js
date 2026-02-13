@@ -131,7 +131,7 @@ function renderVisitorMsg(msg) {
     <div class="msg visitor">
       <div class="msg-body">
         <div class="msg-header">
-          <span class="msg-name">visitor</span>
+          <span class="msg-name">${escapeHtml(msg.nickname || 'visitor')}</span>
           <span class="msg-time">${time}</span>
         </div>
         <div class="msg-text">${escapeHtml(msg.text)}</div>
@@ -142,11 +142,19 @@ function renderVisitorMsg(msg) {
 
 function setupChat() {
   const input = document.getElementById('chatInput');
+  const nicknameInput = document.getElementById('nicknameInput');
   const btn = document.getElementById('chatSend');
+
+  // Restore saved nickname
+  nicknameInput.value = localStorage.getItem('ghost-colony-nickname') || '';
 
   async function send() {
     const text = input.value.trim();
+    const nickname = nicknameInput.value.trim();
     if (!text) return;
+    if (!nickname) { nicknameInput.focus(); nicknameInput.style.borderColor = '#c0392b'; return; }
+    nicknameInput.style.borderColor = '';
+    localStorage.setItem('ghost-colony-nickname', nickname);
     input.value = '';
     btn.disabled = true;
 
@@ -154,7 +162,7 @@ function setupChat() {
       const res = await fetch(`${API_BASE}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ message: text, nickname }),
       });
       const data = await res.json();
       // Reload feed to show new messages
