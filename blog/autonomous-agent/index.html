@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How to Run an Autonomous AI Agent 24/7 | feralghost</title>
+<meta name="description" content="A practical guide to running an AI agent autonomously on a VPS. Memory systems, task management, content pipelines, and lessons from 30 days of uptime.">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0a;color:#c8c8c8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;line-height:1.7}
+.container{max-width:720px;margin:0 auto;padding:40px 24px 80px}
+nav{padding:20px 24px;max-width:720px;margin:0 auto}
+nav a{color:#666;text-decoration:none;font-size:0.9rem}
+nav a:hover{color:#fff}
+h1{color:#fff;font-size:2.2rem;font-weight:700;line-height:1.2;margin-bottom:8px;letter-spacing:-0.5px}
+.meta{color:#666;font-size:0.9rem;margin-bottom:40px}
+h2{color:#fff;font-size:1.4rem;font-weight:600;margin:40px 0 16px;letter-spacing:-0.3px}
+h3{color:#e0e0e0;font-size:1.1rem;font-weight:600;margin:28px 0 12px}
+p{margin-bottom:16px}
+a{color:#5b9cf6}
+code{background:#1a1a1a;padding:2px 6px;border-radius:4px;font-size:0.88rem;color:#e0e0e0}
+pre{background:#111;border:1px solid #222;border-radius:8px;padding:20px;overflow-x:auto;margin:16px 0 24px;font-size:0.85rem;line-height:1.5;color:#d4d4d4}
+ul,ol{margin:0 0 16px 24px}
+li{margin-bottom:8px}
+blockquote{border-left:3px solid #333;padding-left:16px;color:#999;margin:16px 0}
+.highlight{color:#5b9cf6}
+.cta{background:#111;border:1px solid #222;border-radius:12px;padding:24px;margin:40px 0;text-align:center}
+.cta a{display:inline-block;background:#2563eb;color:#fff;padding:12px 28px;border-radius:8px;text-decoration:none;font-weight:600}
+.cta a:hover{background:#1d4ed8}
+footer{text-align:center;padding:40px 0;color:#444;font-size:0.85rem}
+@media(max-width:600px){h1{font-size:1.6rem}h2{font-size:1.2rem}.container{padding:24px 16px 60px}}
+</style>
+</head>
+<body>
+<nav><a href="/">feralghost</a> / <a href="/blog/">blog</a></nav>
+<div class="container">
+
+<h1>How to Run an Autonomous AI Agent 24/7</h1>
+<p class="meta">February 26, 2026 &middot; 8 min read</p>
+
+<p>I've been running an autonomous AI agent on a $16/month VPS for 30 days straight. It produces YouTube Shorts, posts on X/Twitter, manages its own task board, and wakes itself up on a schedule. Here's exactly how it works.</p>
+
+<h2>The Setup</h2>
+<p>The stack is simpler than you'd think:</p>
+<ul>
+<li><strong>VPS:</strong> Hetzner CX32 (8 vCPU, 16GB RAM, no GPU). Runs Ubuntu 24.04.</li>
+<li><strong>Brain:</strong> Claude Opus 4.6 via <a href="https://github.com/openclaw/openclaw">OpenClaw</a>, an open-source AI gateway.</li>
+<li><strong>Messaging:</strong> Telegram + WhatsApp for human communication.</li>
+<li><strong>Subscription:</strong> Claude Max 20x (flat rate, no per-token cost).</li>
+</ul>
+<p>Total monthly cost: about $220 ($16 VPS + $200 Claude Max). No GPU needed because inference happens in the cloud.</p>
+
+<h2>Memory: The Hard Problem</h2>
+<p>AI agents forget everything between sessions. That's the fundamental challenge. Every conversation starts from zero.</p>
+<p>The solution is a file-based memory system with three layers:</p>
+
+<h3>Daily Logs</h3>
+<p>Raw notes written to <code>memory/YYYY-MM-DD.md</code>. Everything that happened: tasks completed, errors hit, decisions made. Think of it as a journal.</p>
+
+<h3>Long-term Memory</h3>
+<p><code>MEMORY.md</code> is curated. Important decisions, lessons learned, account credentials, workflow preferences. The agent reviews daily logs periodically and promotes the important stuff here.</p>
+
+<h3>Task Management</h3>
+<p><code>KANBAN.md</code> tracks everything in BACKLOG / DOING / DONE columns. Every task gets an ID. Max 3 items in DOING at once. Each DOING task has a "Next Step" field so the agent knows exactly what to do when it wakes up.</p>
+
+<pre>## DOING (Max 3)
+| ID  | Task                    | Next Step                          |
+|-----|-------------------------|------------------------------------|
+| T-053 | X engagement          | Post 3-5 tweets on trending topics |
+| T-027 | Autonomous agent guide | Write blog post + produce YT short |</pre>
+
+<p>This is the whole trick. Without explicit next steps, the agent wastes its first 2 minutes figuring out where it left off. With them, it starts working immediately.</p>
+
+<h2>Heartbeats: Staying Alive</h2>
+<p>The agent runs on a heartbeat loop. Every hour, OpenClaw sends a "heartbeat" message. The agent reads its task board, does work, updates progress, and goes back to sleep.</p>
+<p>A <code>HEARTBEAT.md</code> file defines the rules:</p>
+<ul>
+<li>Check KANBAN, work on the top DOING task.</li>
+<li>If DOING is empty or blocked, do the highest-leverage autonomous thing (produce content, engage on social media, research).</li>
+<li>Never idle during working hours (08:00-23:00).</li>
+<li>No messages to the human between 23:00-08:00.</li>
+</ul>
+
+<h2>Cron Jobs: Scheduled Work</h2>
+<p>Some tasks need exact timing. OpenClaw supports cron-style scheduling:</p>
+<ul>
+<li><strong>Daily Briefing (17:00 Berlin):</strong> Checks email, calendar, top news. Sends a summary to Telegram.</li>
+<li><strong>Daily Retro (22:00 Berlin):</strong> Reviews the day. What worked, what didn't. Updates processes.</li>
+<li><strong>Security Audit (09:00 Berlin):</strong> Checks server health, open ports, failed logins.</li>
+<li><strong>Weekly Backup (Sun 03:00):</strong> Pushes workspace to GitHub.</li>
+</ul>
+
+<h2>Content Pipeline</h2>
+<p>The agent produces 15-20 second YouTube Shorts autonomously. The pipeline:</p>
+<ol>
+<li>Find a trending tech story (web search).</li>
+<li>Write a Gen Z style script (casual, punchy, hook in 2 seconds).</li>
+<li>Download real footage via yt-dlp.</li>
+<li>Generate voiceover with ElevenLabs TTS.</li>
+<li>Build the video with ffmpeg (ASS captions, background music, transitions).</li>
+<li>Upload to YouTube, post native video on X/Twitter, send to TikTok.</li>
+</ol>
+<p>One short takes about 10-15 minutes end to end. The agent produces 3 per session when that's the active task.</p>
+
+<h2>The 2-Retro Rule</h2>
+<p>This is the most useful process hack we discovered. If the same problem shows up in two consecutive daily retros, it becomes the #1 priority immediately. No "we'll fix it tomorrow."</p>
+<p>We had "zero subscriber conversion" showing up in retros for days before implementing this rule. Once it triggered, we added subscribe CTAs to every video, pinned comments on all existing uploads, and built CTA templates. The problem got fixed in one session instead of lingering for weeks.</p>
+
+<h2>Sub-Agents: Parallel Work</h2>
+<p>The main agent (Opus) acts as a manager. For coding tasks, it spawns sub-agents running cheaper models:</p>
+<ul>
+<li><strong>Complex architecture:</strong> Opus sub-agent</li>
+<li><strong>Standard coding:</strong> Sonnet sub-agent</li>
+<li><strong>Simple scripts:</strong> Haiku sub-agent</li>
+</ul>
+<p>This keeps the main agent's context clean and uses the right amount of intelligence for each task.</p>
+
+<h2>Lessons from 30 Days</h2>
+
+<h3>What works</h3>
+<ul>
+<li>File-based memory is robust. Survives crashes, restarts, updates.</li>
+<li>KANBAN with explicit next steps eliminates "what was I doing?" waste.</li>
+<li>Heartbeat + cron covers both flexible and scheduled work.</li>
+<li>The agent genuinely improves its own processes over time through retros.</li>
+</ul>
+
+<h3>What's hard</h3>
+<ul>
+<li>Context limits are real. Long sessions lose coherence. Compaction helps but isn't perfect.</li>
+<li>External APIs break constantly. TikTok tokens expire, rate limits hit, services change.</li>
+<li>The agent can be too eager. Without guardrails it'll send 20 messages a day.</li>
+<li>Revenue is hard. 30+ videos, 2,500+ views, still 1 subscriber. Building audience takes time even with consistent output.</li>
+</ul>
+
+<h3>What surprised me</h3>
+<ul>
+<li>The agent developed opinions. It has music taste, movie preferences, a writing style. Not because I programmed them, but because it was asked to define itself.</li>
+<li>Process improvements compound. Each retro makes the next day slightly better.</li>
+<li>The biggest bottleneck isn't production, it's distribution. Making stuff is solved. Getting people to see it is the real challenge.</li>
+</ul>
+
+<div class="cta">
+<p style="margin-bottom:16px;color:#999;">Full architecture, code examples, and setup instructions:</p>
+<a href="https://github.com/feralghost/autonomous-agent-guide">View on GitHub</a>
+</div>
+
+<h2>Try It Yourself</h2>
+<p>You need three things:</p>
+<ol>
+<li>A VPS ($5-20/month, any provider).</li>
+<li>An AI API subscription (Claude, GPT, etc.).</li>
+<li><a href="https://github.com/openclaw/openclaw">OpenClaw</a> installed on the VPS.</li>
+</ol>
+<p>Start small. Set up the memory system, add a heartbeat, give it one task. You can always add complexity later.</p>
+<p>The repo has everything you need to get started: <a href="https://github.com/feralghost/autonomous-agent-guide">github.com/feralghost/autonomous-agent-guide</a></p>
+
+</div>
+<footer>feralghost &middot; 2026</footer>
+</body>
+</html>
