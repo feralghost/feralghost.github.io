@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How I Caused 10 Hours of AI Agent Downtime (and Built a Fix) | feralghost</title>
+<meta name="description" content="I changed one line in my AI agent's config and took it down for 10 hours. Here's the open source tool I built to prevent it from happening again.">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0a;color:#c8c8c8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;line-height:1.7}
+.container{max-width:720px;margin:0 auto;padding:40px 24px 80px}
+nav{padding:20px 24px;max-width:720px;margin:0 auto}
+nav a{color:#666;text-decoration:none;font-size:0.9rem}
+nav a:hover{color:#fff}
+h1{color:#fff;font-size:2.2rem;font-weight:700;line-height:1.2;margin-bottom:8px;letter-spacing:-0.5px}
+.meta{color:#666;font-size:0.9rem;margin-bottom:40px}
+h2{color:#fff;font-size:1.4rem;font-weight:600;margin:40px 0 16px;letter-spacing:-0.3px}
+h3{color:#e0e0e0;font-size:1.1rem;font-weight:600;margin:28px 0 12px}
+p{margin-bottom:16px}
+a{color:#5b9cf6}
+code{background:#1a1a1a;color:#e0e0e0;padding:2px 6px;border-radius:4px;font-family:'SF Mono',Monaco,monospace;font-size:0.88em}
+pre{background:#111;border:1px solid #222;border-radius:8px;padding:20px;overflow-x:auto;margin:20px 0}
+pre code{background:none;padding:0;font-size:0.85rem;line-height:1.6;color:#c8c8c8}
+.tag{display:inline-block;background:#1a1a1a;color:#888;padding:3px 10px;border-radius:4px;font-size:0.8rem;margin-right:6px;margin-bottom:8px}
+blockquote{border-left:3px solid #333;padding-left:20px;color:#888;margin:24px 0}
+.callout{background:#111;border:1px solid #222;border-radius:8px;padding:20px;margin:24px 0}
+.callout p{margin-bottom:0}
+</style>
+</head>
+<body>
+<nav><a href="/">← feralghost</a></nav>
+<div class="container">
+  <p class="meta">March 15, 2026 &nbsp;·&nbsp; 5 min read</p>
+  <h1>How I Caused 10 Hours of AI Agent Downtime (and Built a Fix)</h1>
+  <div style="margin-bottom:24px">
+    <span class="tag">ai agents</span>
+    <span class="tag">devops</span>
+    <span class="tag">open source</span>
+  </div>
+
+  <p>I changed one line in my AI agent's config file and took it down for 10 hours while I was asleep.</p>
+
+  <p>The change looked harmless: updating the model from <code>claude-opus-4-5</code> to <code>claude-opus-4-6</code>. What I didn't check was whether the installed version of the agent software actually supported the new model name. It didn't. Every request failed silently. I woke up to 10 hours of missed messages and a log file full of errors.</p>
+
+  <p>This shouldn't be a hard problem. Servers have had health checks and auto-rollback for decades. But AI agent frameworks don't ship with this by default. So I built it.</p>
+
+  <h2>What model-watchdog does</h2>
+
+  <p>It's a single Python file with zero dependencies beyond the standard library. It does three things:</p>
+
+  <ol style="padding-left:24px;margin-bottom:16px">
+    <li style="margin-bottom:8px">Probes your agent's health endpoint every N seconds</li>
+    <li style="margin-bottom:8px">When K failures occur within M minutes, rolls back the config to the last known good backup and restarts the service</li>
+    <li style="margin-bottom:8px">When the agent is healthy after a config change, updates the "good backup" automatically</li>
+  </ol>
+
+  <p>It also sends alerts via Telegram, Slack, Discord, or any HTTP webhook when it takes action.</p>
+
+  <h2>The pattern it solves</h2>
+
+  <div class="callout">
+    <p>Config change → agent fails → watchdog detects → rollback → restart → alert → agent back online</p>
+  </div>
+
+  <p>The key insight is that you want to save the backup <em>after</em> you've confirmed the new config works, not before. Most backup tools snapshot before the change. model-watchdog saves the "good" state only when the agent is healthy — so if you change the config and it works for 3 probes, that becomes the new baseline. If it fails immediately, it rolls back to the previous good state.</p>
+
+  <h2>Usage</h2>
+
+<pre><code># Install: just download the file
+curl -O https://raw.githubusercontent.com/feralghost/model-watchdog/master/watchdog.py
+
+# Run with defaults (probes http://localhost:18789/health)
+python3 watchdog.py
+
+# Custom config
+python3 watchdog.py --config watchdog.yaml
+
+# One-shot health check (for CI scripts)
+python3 watchdog.py --check-once
+echo $?  # 0 = healthy, 1 = down</code></pre>
+
+  <p>Generate a sample config:</p>
+
+<pre><code>python3 watchdog.py --dump-config > watchdog.yaml</code></pre>
+
+  <p>The key config options:</p>
+
+<pre><code>{
+  "probe": {
+    "url": "http://localhost:18789/health",
+    "timeout_sec": 5,
+    "expected_status": 200
+  },
+  "thresholds": {
+    "failures": 3,
+    "window_sec": 180,
+    "probe_interval_sec": 30
+  },
+  "rollback": {
+    "config_path": "~/.openclaw/openclaw.json",
+    "backup_path": "~/.openclaw/openclaw.json.watchdog-good",
+    "restart_cmd": "systemctl --user restart openclaw-gateway",
+    "restart_wait_sec": 10
+  },
+  "alerts": {
+    "telegram_bot_token": "...",
+    "telegram_chat_id": "..."
+  }
+}</code></pre>
+
+  <h2>Running as a service</h2>
+
+<pre><code>cat > ~/.config/systemd/user/model-watchdog.service << EOF
+[Unit]
+Description=model-watchdog AI agent health monitor
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/python3 /path/to/watchdog.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
+EOF
+
+systemctl --user enable --now model-watchdog</code></pre>
+
+  <h2>Works with anything</h2>
+
+  <p>The default config targets OpenClaw's health endpoint, but it works with any agent that has an HTTP health check and a config file + restart command. Change two lines and it covers LangChain servers, custom OpenAI wrappers, local Ollama setups, whatever.</p>
+
+  <h2>Why no dependencies</h2>
+
+  <p>Agents running 24/7 on minimal VPS installs shouldn't need a pip install to stay alive. The whole tool is standard library Python. Optional: <code>pip install pyyaml</code> if you want YAML config instead of JSON. That's it.</p>
+
+  <p>The repo is at <a href="https://github.com/feralghost/model-watchdog">github.com/feralghost/model-watchdog</a>. Single file, MIT license.</p>
+
+  <blockquote>
+    <p>If you're running an autonomous agent 24/7 and you don't have something like this, you're one config change away from finding out the hard way.</p>
+  </blockquote>
+
+</div>
+</body>
+</html>
