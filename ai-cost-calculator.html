@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Cost Calculator — Compare GPT-4o, Claude, Gemini pricing in real time</title>
+<meta name="description" content="Free AI API cost calculator. Paste your prompt, see exact token counts and costs across GPT-4o, Claude Sonnet, Gemini Flash, Llama, and 20+ models. No signup.">
+<style>
+  :root {
+    --bg: #0d0d0f;
+    --surface: #161618;
+    --border: #2a2a2e;
+    --accent: #a0a0ff;
+    --text: #e0e0e8;
+    --dim: #70707a;
+    --green: #4caf50;
+    --red: #ff5252;
+    --yellow: #ffd700;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; }
+  .header { padding: 32px 24px 20px; max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 1.6rem; font-weight: 700; color: var(--accent); }
+  h1 span { color: var(--text); }
+  .sub { color: var(--dim); font-size: 0.9rem; margin-top: 6px; }
+  .main { max-width: 900px; margin: 0 auto; padding: 0 24px 48px; }
+  .prompt-box { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 20px; }
+  .prompt-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .prompt-header label { font-size: 0.85rem; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; }
+  .stats { font-size: 0.85rem; color: var(--dim); }
+  .stats span { color: var(--accent); font-weight: 600; }
+  textarea { width: 100%; background: transparent; border: none; outline: none; color: var(--text); font-size: 0.95rem; resize: vertical; min-height: 120px; font-family: inherit; line-height: 1.5; }
+  .controls { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; align-items: center; }
+  .mode-btn { padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--dim); cursor: pointer; font-size: 0.85rem; transition: all 0.15s; }
+  .mode-btn.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+  .filter-label { font-size: 0.8rem; color: var(--dim); margin-left: auto; }
+  .grid { display: grid; gap: 10px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; display: grid; grid-template-columns: 1fr auto auto auto; gap: 12px; align-items: center; transition: border-color 0.15s; }
+  .card:hover { border-color: var(--accent); }
+  .card.cheapest { border-color: var(--green); }
+  .card.expensive { border-color: var(--red); }
+  .model-name { font-weight: 600; font-size: 0.95rem; }
+  .model-provider { font-size: 0.78rem; color: var(--dim); margin-top: 2px; }
+  .context-badge { font-size: 0.72rem; color: var(--dim); background: var(--border); padding: 2px 7px; border-radius: 4px; white-space: nowrap; }
+  .cost-col { text-align: right; }
+  .cost-val { font-size: 1.05rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .cost-label { font-size: 0.72rem; color: var(--dim); margin-top: 1px; }
+  .tokens-col { text-align: right; font-size: 0.8rem; color: var(--dim); }
+  .badge-cheapest { font-size: 0.7rem; background: var(--green); color: #000; padding: 2px 8px; border-radius: 4px; font-weight: 700; }
+  .section-header { font-size: 0.75rem; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 10px; padding-left: 4px; }
+  .info-row { font-size: 0.78rem; color: var(--dim); margin-top: 16px; line-height: 1.6; }
+  .info-row a { color: var(--accent); text-decoration: none; }
+  @media (max-width: 600px) {
+    .card { grid-template-columns: 1fr auto; }
+    .tokens-col, .context-badge { display: none; }
+    h1 { font-size: 1.3rem; }
+  }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>AI Cost <span>Calculator</span></h1>
+  <p class="sub">Paste any text. See exact token count + API cost across 20+ models. No signup, no tracking.</p>
+</div>
+<div class="main">
+  <div class="prompt-box">
+    <div class="prompt-header">
+      <label>Your prompt / text</label>
+      <div class="stats">
+        <span id="char-count">0</span> chars &nbsp;·&nbsp; ~<span id="token-count">0</span> tokens
+      </div>
+    </div>
+    <textarea id="prompt" placeholder="Paste your prompt here to see how much it costs across different models..." autofocus></textarea>
+  </div>
+
+  <div class="controls">
+    <button class="mode-btn active" onclick="setMode('input')">Input only</button>
+    <button class="mode-btn" onclick="setMode('output')">Output only</button>
+    <button class="mode-btn" onclick="setMode('both')">Input + Output</button>
+    <span class="filter-label" id="output-note" style="display:none">Output: same length as input</span>
+  </div>
+
+  <div id="results"></div>
+
+  <div class="info-row">
+    Pricing updated March 2026. Token estimates use ~4 chars/token (GPT/Claude) or ~3.5 chars/token (Gemini).
+    Actual costs may vary. Always check official docs:
+    <a href="https://openai.com/api/pricing" target="_blank">OpenAI</a> ·
+    <a href="https://www.anthropic.com/pricing" target="_blank">Anthropic</a> ·
+    <a href="https://ai.google.dev/pricing" target="_blank">Google</a>
+    <br><br>Built by <a href="https://feralghost.github.io" target="_blank">feralghost</a> · <a href="https://youtube.com/@ghostferal" target="_blank">YouTube</a>
+  </div>
+</div>
+
+<script>
+// Model database: [name, provider, input$/1M, output$/1M, context_k, tokens_per_char]
+const MODELS = [
+  // OpenAI
+  ["GPT-4o",            "OpenAI",     2.5,   10.0,  128,  0.25],
+  ["GPT-4o mini",       "OpenAI",     0.15,  0.60,  128,  0.25],
+  ["GPT-4.1",           "OpenAI",     2.0,   8.0,   1024, 0.25],
+  ["GPT-4.1 mini",      "OpenAI",     0.40,  1.60,  1024, 0.25],
+  ["o3",                "OpenAI",     10.0,  40.0,  200,  0.25],
+  ["o4-mini",           "OpenAI",     1.10,  4.40,  200,  0.25],
+  // Anthropic
+  ["Claude Opus 4.6",   "Anthropic",  15.0,  75.0,  200,  0.25],
+  ["Claude Sonnet 4.6", "Anthropic",  3.0,   15.0,  200,  0.25],
+  ["Claude Haiku 4.5",  "Anthropic",  0.80,  4.0,   200,  0.25],
+  // Google
+  ["Gemini 2.5 Pro",    "Google",     1.25,  10.0,  1000, 0.285],
+  ["Gemini 2.5 Flash",  "Google",     0.15,  0.60,  1000, 0.285],
+  ["Gemini 2.0 Flash",  "Google",     0.10,  0.40,  1000, 0.285],
+  // Meta / open
+  ["Llama 3.3 70B",     "Meta/OSS",   0.23,  0.40,  128,  0.25],
+  ["Llama 3.1 405B",    "Meta/OSS",   3.0,   3.0,   128,  0.25],
+  // Mistral
+  ["Mistral Large",     "Mistral",    2.0,   6.0,   128,  0.25],
+  ["Mistral Small",     "Mistral",    0.10,  0.30,  128,  0.25],
+  ["Codestral",         "Mistral",    0.30,  0.90,  256,  0.25],
+  // DeepSeek
+  ["DeepSeek V3",       "DeepSeek",   0.27,  1.10,  64,   0.25],
+  ["DeepSeek R1",       "DeepSeek",   0.55,  2.19,  128,  0.25],
+  // xAI
+  ["Grok 3",            "xAI",        3.0,   15.0,  131,  0.25],
+  ["Grok 3 mini",       "xAI",        0.30,  0.50,  131,  0.25],
+  // Cohere
+  ["Command R+",        "Cohere",     2.50,  10.0,  128,  0.25],
+  ["Command R",         "Cohere",     0.15,  0.60,  128,  0.25],
+];
+
+let mode = 'input';
+
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('output-note').style.display = (m !== 'input') ? '' : 'none';
+  render();
+}
+
+function estimateTokens(chars, tpc) {
+  return Math.ceil(chars * tpc);
+}
+
+function calcCost(tokens, ratePerM) {
+  return (tokens / 1_000_000) * ratePerM;
+}
+
+function formatCost(usd) {
+  if (usd === 0) return '$0.00';
+  if (usd < 0.000001) return '<$0.000001';
+  if (usd < 0.001) return '$' + usd.toFixed(6);
+  if (usd < 0.01)  return '$' + usd.toFixed(5);
+  if (usd < 1)     return '$' + usd.toFixed(4);
+  if (usd < 100)   return '$' + usd.toFixed(2);
+  return '$' + Math.round(usd).toLocaleString();
+}
+
+function formatTokens(n) {
+  if (n >= 1000) return (n/1000).toFixed(1) + 'k';
+  return n.toString();
+}
+
+function render() {
+  const text = document.getElementById('prompt').value;
+  const chars = text.length;
+  document.getElementById('char-count').textContent = chars.toLocaleString();
+
+  // Average token estimate for display (using GPT ratio)
+  const avgTokens = Math.ceil(chars * 0.25);
+  document.getElementById('token-count').textContent = avgTokens.toLocaleString();
+
+  if (chars === 0) {
+    document.getElementById('results').innerHTML = '<div class="section-header">Start typing or paste text above to see costs</div>';
+    return;
+  }
+
+  // Calculate costs per model
+  const costs = MODELS.map(([name, provider, inRate, outRate, ctx, tpc]) => {
+    const inputTokens = estimateTokens(chars, tpc);
+    const outputTokens = (mode === 'input') ? 0 : estimateTokens(chars, tpc);
+    let cost = 0;
+    if (mode === 'input') cost = calcCost(inputTokens, inRate);
+    else if (mode === 'output') cost = calcCost(outputTokens, outRate);
+    else cost = calcCost(inputTokens, inRate) + calcCost(outputTokens, outRate);
+    return { name, provider, cost, inputTokens, outputTokens, ctx, inRate, outRate };
+  });
+
+  // Sort by cost
+  costs.sort((a, b) => a.cost - b.cost);
+  const minCost = costs[0].cost;
+  const maxCost = costs[costs.length - 1].cost;
+
+  // Group by provider for section headers
+  const providerOrder = ['OpenAI', 'Anthropic', 'Google', 'Meta/OSS', 'Mistral', 'DeepSeek', 'xAI', 'Cohere'];
+  const byCost = costs; // show sorted by cost
+
+  let html = '<div class="section-header">Sorted by cost (cheapest first)</div><div class="grid">';
+
+  byCost.forEach((m, idx) => {
+    const isCheapest = m.cost === minCost;
+    const isExpensive = idx === byCost.length - 1;
+    const tokenDisplay = mode === 'output' ? formatTokens(m.outputTokens) : formatTokens(m.inputTokens);
+    const tokenLabel = mode === 'output' ? 'out tokens' : mode === 'both' ? 'in+out tokens' : 'in tokens';
+
+    html += `<div class="card ${isCheapest ? 'cheapest' : isExpensive ? 'expensive' : ''}">
+      <div>
+        <div class="model-name">${m.name} ${isCheapest ? '<span class="badge-cheapest">CHEAPEST</span>' : ''}</div>
+        <div class="model-provider">${m.provider} · $${m.inRate}/M in · $${m.outRate}/M out</div>
+      </div>
+      <div class="context-badge">${m.ctx}k ctx</div>
+      <div class="tokens-col">
+        ${tokenDisplay}<br><span>${tokenLabel}</span>
+      </div>
+      <div class="cost-col">
+        <div class="cost-val" style="color:${isCheapest ? 'var(--green)' : isExpensive ? 'var(--red)' : 'var(--text)'}">${formatCost(m.cost)}</div>
+        <div class="cost-label">per call</div>
+      </div>
+    </div>`;
+  });
+
+  html += '</div>';
+
+  // Summary
+  const savings = maxCost > 0 ? ((maxCost - minCost) / maxCost * 100).toFixed(0) : 0;
+  html += `<div class="info-row" style="margin-top:20px">
+    Cheapest: <strong style="color:var(--green)">${costs[0].name}</strong> at ${formatCost(minCost)} &nbsp;·&nbsp;
+    Most expensive: <strong style="color:var(--red)">${costs[costs.length-1].name}</strong> at ${formatCost(maxCost)} &nbsp;·&nbsp;
+    Potential savings: <strong style="color:var(--yellow)">${savings}%</strong>
+  </div>`;
+
+  document.getElementById('results').innerHTML = html;
+}
+
+document.getElementById('prompt').addEventListener('input', render);
+render();
+</script>
+</body>
+</html>
