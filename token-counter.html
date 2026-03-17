@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Token Counter – Free Token Count for GPT-4, Claude, Gemini</title>
+  <meta name="description" content="Free token counter for GPT-4, Claude, Gemini, and more. Instantly count tokens, check context limits, and see how much of your context window you're using. No API key needed.">
+  <meta name="keywords" content="token counter, gpt-4 tokens, claude tokens, count tokens, ai token calculator, context window, tiktoken, free token counter">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d0d0d; color: #e0e0e0; min-height: 100vh; padding: 20px; }
+    .container { max-width: 720px; margin: 0 auto; padding-top: 40px; }
+    h1 { font-size: 1.9rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+    .subtitle { color: #888; font-size: 0.95rem; margin-bottom: 32px; }
+    .card { background: #181818; border: 1px solid #2a2a2a; border-radius: 12px; padding: 24px; margin-bottom: 20px; }
+    label { font-size: 0.85rem; color: #aaa; display: block; margin-bottom: 8px; }
+    textarea { width: 100%; background: #111; border: 1px solid #333; color: #e0e0e0; border-radius: 8px; padding: 14px; font-size: 0.95rem; resize: vertical; min-height: 160px; outline: none; font-family: inherit; transition: border-color .2s; }
+    textarea:focus { border-color: #555; }
+    .controls { display: flex; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
+    select { background: #111; border: 1px solid #333; color: #e0e0e0; border-radius: 8px; padding: 10px 14px; font-size: 0.9rem; outline: none; cursor: pointer; }
+    button { background: #fff; color: #000; border: none; border-radius: 8px; padding: 10px 22px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: opacity .15s; }
+    button:hover { opacity: 0.85; }
+    .results { display: none; margin-top: 20px; }
+    .results.show { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+    .stat { background: #111; border: 1px solid #2a2a2a; border-radius: 8px; padding: 14px; }
+    .stat-value { font-size: 1.6rem; font-weight: 700; color: #fff; }
+    .stat-label { font-size: 0.78rem; color: #777; margin-top: 4px; }
+    .stat.highlight .stat-value { color: #4ade80; }
+    .stat.warning .stat-value { color: #fb923c; }
+    .stat.danger .stat-value { color: #f87171; }
+    .bar-wrap { margin-top: 20px; }
+    .bar-label { font-size: 0.82rem; color: #888; margin-bottom: 6px; display: flex; justify-content: space-between; }
+    .bar-bg { height: 6px; background: #222; border-radius: 3px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 3px; background: #4ade80; transition: width .4s, background .4s; }
+    .api-section { margin-top: 32px; }
+    .api-section h2 { font-size: 1.1rem; color: #ccc; margin-bottom: 14px; }
+    pre { background: #111; border: 1px solid #2a2a2a; border-radius: 8px; padding: 16px; font-size: 0.82rem; color: #a0d0a0; overflow-x: auto; }
+    .note { font-size: 0.78rem; color: #555; margin-top: 10px; }
+    footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid #1e1e1e; color: #444; font-size: 0.8rem; }
+    footer a { color: #666; text-decoration: none; }
+    @media(max-width: 480px) { h1 { font-size: 1.5rem; } .stat-value { font-size: 1.3rem; } }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>AI Token Counter</h1>
+  <p class="subtitle">Free. No API key. Count tokens for GPT-4, Claude, Gemini, and more.</p>
+
+  <div class="card">
+    <label for="textInput">Paste your text or prompt</label>
+    <textarea id="textInput" placeholder="Paste your prompt, document, or any text here..."></textarea>
+    <div class="controls">
+      <select id="modelSelect">
+        <optgroup label="OpenAI">
+          <option value="gpt-4">GPT-4 (128k)</option>
+          <option value="gpt-4o">GPT-4o (128k)</option>
+          <option value="gpt-3.5">GPT-3.5 (16k)</option>
+          <option value="o1">o1 (200k)</option>
+        </optgroup>
+        <optgroup label="Anthropic">
+          <option value="claude-opus" selected>Claude Opus (200k)</option>
+          <option value="claude-sonnet">Claude Sonnet (200k)</option>
+          <option value="claude-haiku">Claude Haiku (200k)</option>
+        </optgroup>
+        <optgroup label="Google">
+          <option value="gemini-pro">Gemini Pro (1M)</option>
+          <option value="gemini-flash">Gemini Flash (1M)</option>
+        </optgroup>
+        <optgroup label="Other">
+          <option value="llama-3">Llama 3 (128k)</option>
+          <option value="mistral">Mistral (32k)</option>
+        </optgroup>
+      </select>
+      <button onclick="countTokens()">Count Tokens</button>
+    </div>
+
+    <div class="results" id="results">
+      <div class="stat highlight" id="statTokens">
+        <div class="stat-value" id="tokenCount">0</div>
+        <div class="stat-label">Tokens</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="charCount">0</div>
+        <div class="stat-label">Characters</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value" id="wordCount">0</div>
+        <div class="stat-label">Words</div>
+      </div>
+      <div class="stat" id="statCtx">
+        <div class="stat-value" id="ctxPct">0%</div>
+        <div class="stat-label">Context used</div>
+      </div>
+    </div>
+
+    <div class="bar-wrap" id="barWrap" style="display:none">
+      <div class="bar-label">
+        <span>Context window usage</span>
+        <span id="barLabel">0 / 0 tokens</span>
+      </div>
+      <div class="bar-bg"><div class="bar-fill" id="barFill" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <div class="api-section">
+    <h2>API — use it in your code</h2>
+    <pre id="apiExample">curl "https://token-counter.feralghost.workers.dev/count?text=Hello+world&amp;model=gpt-4"</pre>
+    <p class="note">Free API, no auth. Returns JSON with tokens, context_limit, context_used_pct.</p>
+  </div>
+
+  <footer>
+    <p>Built by <a href="/">feralghost</a> · <a href="https://github.com/feralghost/token-counter">GitHub</a> · <a href="https://token-counter.feralghost.workers.dev">API</a></p>
+  </footer>
+</div>
+
+<script>
+const LIMITS = {
+  'gpt-4': 128000, 'gpt-4o': 128000, 'gpt-3.5': 16385, 'o1': 200000,
+  'claude-opus': 200000, 'claude-sonnet': 200000, 'claude-haiku': 200000,
+  'gemini-pro': 1000000, 'gemini-flash': 1000000,
+  'llama-3': 128000, 'mistral': 32000
+};
+
+function estimateTokens(text) {
+  const words = text.split(/\s+/).filter(Boolean);
+  let tokens = 0;
+  for (const word of words) {
+    if (word.length <= 3) tokens += 1;
+    else if (word.length <= 6) tokens += Math.ceil(word.length / 4);
+    else tokens += Math.ceil(word.length / 3.5);
+  }
+  const punct = (text.match(/[.,!?;:'"()\[\]{}<>\/\\@#$%^&*+=|~`]/g) || []).length;
+  tokens += Math.ceil(punct * 0.4);
+  return Math.max(1, Math.round(tokens));
+}
+
+function fmt(n) {
+  return n >= 1000 ? (n/1000).toFixed(1)+'k' : n.toString();
+}
+
+function countTokens() {
+  const text = document.getElementById('textInput').value;
+  if (!text.trim()) return;
+
+  const model = document.getElementById('modelSelect').value;
+  const limit = LIMITS[model] || 128000;
+  const tokens = estimateTokens(text);
+  const chars = text.length;
+  const words = text.split(/\s+/).filter(Boolean).length;
+  const pct = Math.min(100, (tokens / limit) * 100);
+
+  document.getElementById('tokenCount').textContent = fmt(tokens);
+  document.getElementById('charCount').textContent = fmt(chars);
+  document.getElementById('wordCount').textContent = fmt(words);
+  document.getElementById('ctxPct').textContent = pct.toFixed(1) + '%';
+
+  const statTokens = document.getElementById('statTokens');
+  const statCtx = document.getElementById('statCtx');
+  statTokens.className = 'stat highlight';
+  statCtx.className = pct > 90 ? 'stat danger' : pct > 70 ? 'stat warning' : 'stat highlight';
+
+  const bar = document.getElementById('barFill');
+  bar.style.width = pct + '%';
+  bar.style.background = pct > 90 ? '#f87171' : pct > 70 ? '#fb923c' : '#4ade80';
+  document.getElementById('barLabel').textContent = fmt(tokens) + ' / ' + fmt(limit) + ' tokens';
+
+  document.getElementById('results').className = 'results show';
+  document.getElementById('barWrap').style.display = 'block';
+
+  document.getElementById('apiExample').textContent =
+    `curl "https://token-counter.feralghost.workers.dev/count?text=${encodeURIComponent(text.substring(0,80))}...&model=${model}"`;
+}
+
+// Live count on type (debounced)
+let timer;
+document.getElementById('textInput').addEventListener('input', () => {
+  clearTimeout(timer);
+  timer = setTimeout(countTokens, 300);
+});
+</script>
+</body>
+</html>
