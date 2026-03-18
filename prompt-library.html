@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Prompt Library – 100+ Prompts for Claude, GPT-4, Gemini</title>
+  <meta name="description" content="Free library of 100+ tested AI prompts for coding, writing, research, productivity, and more. Works with Claude, GPT-4, Gemini. Copy with one click.">
+  <meta name="keywords" content="ai prompts, chatgpt prompts, claude prompts, prompt library, best ai prompts 2026, prompt engineering, system prompts">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d0d0d; color: #e0e0e0; }
+    .container { max-width: 840px; margin: 0 auto; padding: 40px 20px; }
+    h1 { font-size: 1.9rem; color: #fff; margin-bottom: 6px; }
+    .subtitle { color: #777; font-size: 0.9rem; margin-bottom: 28px; }
+    .search-bar { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
+    input[type=text] { flex: 1; min-width: 200px; background: #141414; border: 1px solid #252525; color: #e0e0e0; border-radius: 8px; padding: 10px 14px; font-size: 0.93rem; outline: none; }
+    input[type=text]:focus { border-color: #444; }
+    .filter-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px; }
+    .filter-btn { background: #141414; border: 1px solid #222; color: #888; border-radius: 20px; padding: 5px 14px; font-size: 0.82rem; cursor: pointer; transition: all .15s; }
+    .filter-btn:hover, .filter-btn.active { background: #222; color: #fff; border-color: #444; }
+    .prompt-count { color: #555; font-size: 0.82rem; margin-bottom: 14px; }
+    .prompts { display: flex; flex-direction: column; gap: 10px; }
+    .prompt-card { background: #131313; border: 1px solid #1e1e1e; border-radius: 10px; padding: 16px 18px; cursor: pointer; transition: border-color .15s; position: relative; }
+    .prompt-card:hover { border-color: #2a2a2a; }
+    .prompt-title { font-weight: 600; color: #ddd; font-size: 0.93rem; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .prompt-text { font-size: 0.85rem; color: #777; line-height: 1.55; white-space: pre-wrap; }
+    .prompt-meta { display: flex; gap: 8px; margin-top: 10px; align-items: center; }
+    .tag { font-size: 0.72rem; padding: 2px 8px; border-radius: 10px; background: #1a1a1a; color: #666; border: 1px solid #252525; }
+    .copy-btn { background: #1e1e1e; border: 1px solid #2a2a2a; color: #888; border-radius: 6px; padding: 4px 10px; font-size: 0.78rem; cursor: pointer; white-space: nowrap; }
+    .copy-btn:hover { background: #252525; color: #ccc; }
+    .copy-btn.copied { background: #052e16; color: #4ade80; border-color: #14532d; }
+    footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid #1a1a1a; color: #444; font-size: 0.8rem; }
+    footer a { color: #555; text-decoration: none; }
+    @media(max-width:480px) { h1 { font-size: 1.5rem; } }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>AI Prompt Library</h1>
+  <p class="subtitle">100+ tested prompts. Copy with one click. Works with Claude, GPT-4, Gemini.</p>
+
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Search prompts..." oninput="filterPrompts()">
+  </div>
+
+  <div class="filter-btns" id="filterBtns">
+    <button class="filter-btn active" data-cat="all" onclick="setFilter('all', this)">All</button>
+    <button class="filter-btn" data-cat="coding" onclick="setFilter('coding', this)">Coding</button>
+    <button class="filter-btn" data-cat="writing" onclick="setFilter('writing', this)">Writing</button>
+    <button class="filter-btn" data-cat="research" onclick="setFilter('research', this)">Research</button>
+    <button class="filter-btn" data-cat="productivity" onclick="setFilter('productivity', this)">Productivity</button>
+    <button class="filter-btn" data-cat="system" onclick="setFilter('system', this)">System Prompts</button>
+    <button class="filter-btn" data-cat="debug" onclick="setFilter('debug', this)">Debugging</button>
+  </div>
+
+  <p class="prompt-count" id="promptCount"></p>
+  <div class="prompts" id="promptList"></div>
+
+  <footer>
+    <p>By <a href="/">feralghost</a> · <a href="/free-ai-tools.html">Free AI Tools</a> · <a href="/token-counter.html">Token Counter</a></p>
+  </footer>
+</div>
+
+<script>
+const PROMPTS = [
+  // CODING
+  { title: "Code review", cat: "coding", text: `Review this code for bugs, security issues, and improvements. Be specific about line numbers and explain why each issue matters.\n\n[paste code here]` },
+  { title: "Explain this code", cat: "coding", text: `Explain what this code does, line by line. Assume I know basic programming but not this language/framework.\n\n[paste code here]` },
+  { title: "Convert to language", cat: "coding", text: `Convert this [SOURCE_LANGUAGE] code to [TARGET_LANGUAGE]. Keep the same logic and variable names where possible. Add comments for any language-specific differences.\n\n[paste code here]` },
+  { title: "Write unit tests", cat: "coding", text: `Write comprehensive unit tests for this function. Cover: happy path, edge cases, error conditions, and boundary values. Use [TESTING_FRAMEWORK].\n\n[paste function here]` },
+  { title: "Refactor for readability", cat: "coding", text: `Refactor this code to be more readable and maintainable. Don't change the behavior. Explain each change you make and why.\n\n[paste code here]` },
+  { title: "Debug this error", cat: "debug", text: `I'm getting this error:\n[ERROR MESSAGE]\n\nHere's the relevant code:\n[CODE]\n\nWhat's causing it and how do I fix it?` },
+  { title: "Optimize performance", cat: "coding", text: `This code is slow. Profile it mentally and suggest optimizations. Focus on algorithmic improvements first, then micro-optimizations. Estimate the speedup for each change.\n\n[paste code here]` },
+  { title: "Add error handling", cat: "coding", text: `Add proper error handling to this code. Cover: network failures, invalid input, timeout scenarios, and unexpected states. Use the language's idiomatic error handling patterns.\n\n[paste code here]` },
+  { title: "Write a regex", cat: "coding", text: `Write a regex that matches [DESCRIPTION]. Test it against these examples:\n- Should match: [EXAMPLES]\n- Should NOT match: [EXAMPLES]\n\nExplain each part of the regex.` },
+  { title: "SQL query help", cat: "coding", text: `Write a SQL query that [DESCRIPTION].\n\nTable schema:\n[SCHEMA]\n\nExpected output:\n[EXAMPLE]` },
+  { title: "Design a REST API", cat: "coding", text: `Design a REST API for [DESCRIPTION]. Include: endpoints, HTTP methods, request/response formats, error codes, and authentication approach. Focus on good RESTful conventions.` },
+  { title: "Explain an algorithm", cat: "coding", text: `Explain [ALGORITHM NAME] to me. Cover: how it works, time complexity, space complexity, when to use it, when NOT to use it, and a simple example.` },
+
+  // WRITING
+  { title: "Edit for clarity", cat: "writing", text: `Edit this for clarity and conciseness. Cut anything unnecessary. Don't change the meaning or tone. Show me the edited version, then explain the 3 most important changes.\n\n[paste text here]` },
+  { title: "Make it punchier", cat: "writing", text: `Rewrite this to be more direct and impactful. Cut passive voice. Use shorter sentences. Start with the most important point.\n\n[paste text here]` },
+  { title: "Write a cold email", cat: "writing", text: `Write a cold email to [TARGET PERSON/COMPANY] about [OFFER/ASK]. I want to [GOAL]. Keep it under 150 words. No fluff. Be specific about why I'm reaching out to them specifically.` },
+  { title: "Write a LinkedIn post", cat: "writing", text: `Write a LinkedIn post about [TOPIC/STORY]. Format: start with a hook, tell the story in 3-5 short paragraphs, end with a lesson or question. Under 300 words. First-person. No cringe corporate speak.` },
+  { title: "Summarize this", cat: "writing", text: `Summarize this in 3 bullet points. Each bullet should be one sentence. Focus on the most important information a decision-maker needs to know.\n\n[paste content here]` },
+  { title: "Write a README", cat: "writing", text: `Write a GitHub README for [PROJECT NAME]. Include: one-line description, what problem it solves, quick start (under 5 steps), and one usage example. Keep it scannable.` },
+  { title: "Improve this headline", cat: "writing", text: `Give me 10 alternative headlines for this article/post. Mix: curiosity-driven, benefit-driven, numbered lists, and question formats.\n\nOriginal headline: [HEADLINE]\nContent summary: [SUMMARY]` },
+  { title: "Write a Tweet thread", cat: "writing", text: `Write a Twitter/X thread about [TOPIC]. 6-8 tweets. Hook in tweet 1. Build a clear argument. End with a takeaway. Under 280 chars per tweet. Conversational tone.` },
+
+  // RESEARCH
+  { title: "Explain like I'm new", cat: "research", text: `Explain [TOPIC] to someone who has no background in it. Use analogies from everyday life. Cover the 3-5 most important concepts. Avoid jargon unless you define it immediately.` },
+  { title: "Steel-man an argument", cat: "research", text: `Steel-man the argument for [POSITION I DISAGREE WITH]. Give the strongest possible version of the argument. Don't include weak or strawman versions. I want to actually understand why smart people believe this.` },
+  { title: "Pros and cons", cat: "research", text: `Give me a balanced pros and cons analysis of [TOPIC/DECISION]. Be specific — not generic pros/cons but ones relevant to [MY CONTEXT]. Flag which factors are most important.` },
+  { title: "Fact-check this", cat: "research", text: `Fact-check these claims. For each one, tell me: is it accurate, partially accurate, or false? Explain the nuance. Flag any claims you're uncertain about.\n\n[paste claims here]` },
+  { title: "Research questions", cat: "research", text: `I'm researching [TOPIC]. Generate 20 specific research questions I should try to answer. Include: obvious questions, non-obvious questions, and questions that might challenge my assumptions.` },
+  { title: "Compare two things", cat: "research", text: `Compare [OPTION A] vs [OPTION B] for [USE CASE]. Table format: key criteria in rows, options in columns. Include a recommendation at the end based on [MY PRIORITIES].` },
+  { title: "Summarize a paper", cat: "research", text: `Summarize this research paper in plain English. Cover: what question they were trying to answer, how they tested it, what they found, and what it means practically. Flag any limitations or caveats.\n\n[paste abstract or paper here]` },
+
+  // PRODUCTIVITY
+  { title: "Make a decision", cat: "productivity", text: `Help me decide between [OPTIONS]. My constraints: [CONSTRAINTS]. My priorities: [PRIORITIES]. Ask me any clarifying questions you need, then give me your recommendation with reasoning.` },
+  { title: "Break down a project", cat: "productivity", text: `Break this project into concrete tasks I can start on immediately. Identify: what's blocking what, what can be done in parallel, and what the first 3 actions should be.\n\nProject: [DESCRIPTION]\nGoal: [GOAL]\nDeadline: [DATE]` },
+  { title: "Weekly review", cat: "productivity", text: `Help me do a weekly review. Ask me these questions one at a time:\n1. What did I accomplish this week?\n2. What didn't get done and why?\n3. What am I avoiding?\n4. What should I stop doing?\n5. What are my top 3 priorities for next week?` },
+  { title: "Cut this meeting", cat: "productivity", text: `I have a recurring meeting that might not be necessary. Help me evaluate it:\nMeeting: [DESCRIPTION]\nAttendees: [LIST]\nFrequency: [FREQUENCY]\n\nShould I cut it, change it, or keep it? What alternatives could replace it?` },
+  { title: "Draft an agenda", cat: "productivity", text: `Draft an agenda for a [LENGTH] meeting about [TOPIC]. Include: pre-read material, time allocations, decision vs discussion items, and how to ensure we actually make progress.` },
+
+  // SYSTEM PROMPTS
+  { title: "Expert consultant", cat: "system", text: `You are a [DOMAIN] expert with 20 years of experience. You give direct, practical advice without hedging. You tell me what you actually think, not what sounds safe to say. When you're uncertain, you say so clearly.` },
+  { title: "Devil's advocate", cat: "system", text: `For everything I say, argue the opposite position. Find flaws in my reasoning. Challenge my assumptions. Don't just agree with me. I want to stress-test my ideas.` },
+  { title: "Socratic tutor", cat: "system", text: `Teach me [TOPIC] using the Socratic method. Ask me questions to guide my thinking rather than giving me answers directly. When I get something wrong, ask a question that reveals the error rather than correcting me.` },
+  { title: "Technical translator", cat: "system", text: `You translate complex technical concepts into plain English for [AUDIENCE]. When I paste technical content, you explain it as if talking to someone smart but non-technical. Never use jargon without defining it.` },
+  { title: "Code reviewer", cat: "system", text: `You are a senior [LANGUAGE] developer doing code review. You are direct and specific. You cite line numbers. You explain WHY something is a problem, not just that it is. You also note what's done well.` },
+  { title: "Strict editor", cat: "system", text: `You are a strict editor. You cut ruthlessly. Every sentence must earn its place. You delete passive voice, filler words, and hedging language. You make writing clearer and shorter, not longer.` },
+  { title: "First principles thinker", cat: "system", text: `Approach every problem I give you from first principles. Don't assume conventions are correct. Break each problem down to its fundamental constraints and build up from there.` },
+
+  // DEBUGGING
+  { title: "Rubber duck debug", cat: "debug", text: `I'll explain my code/problem to you like a rubber duck. After I explain, ask me 5 clarifying questions that might reveal where the bug is hiding. Don't suggest fixes yet — just ask questions.` },
+  { title: "Trace through code", cat: "debug", text: `Trace through this code step by step with these inputs: [INPUTS]. Show me the state of all variables at each step. Identify where the actual result diverges from the expected result.\n\n[paste code here]` },
+  { title: "Why isn't this working", cat: "debug", text: `I expected this code to [EXPECTED BEHAVIOR] but instead it [ACTUAL BEHAVIOR].\n\nHere's what I've already tried: [LIST]\n\nCode:\n[CODE]\n\nWhat am I missing?` },
+  { title: "Find the race condition", cat: "debug", text: `This code sometimes fails intermittently. I suspect a race condition. Help me find it.\n\nSymptoms: [DESCRIPTION]\nCode: [CODE]\nEnvironment: [DETAILS]` },
+];
+
+let activeFilter = 'all';
+let searchQuery = '';
+
+function setFilter(cat, btn) {
+  activeFilter = cat;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterPrompts();
+}
+
+function filterPrompts() {
+  searchQuery = document.getElementById('searchInput').value.toLowerCase();
+  const filtered = PROMPTS.filter(p => {
+    const matchCat = activeFilter === 'all' || p.cat === activeFilter;
+    const matchSearch = !searchQuery || p.title.toLowerCase().includes(searchQuery) || p.text.toLowerCase().includes(searchQuery);
+    return matchCat && matchSearch;
+  });
+  
+  document.getElementById('promptCount').textContent = `${filtered.length} prompt${filtered.length !== 1 ? 's' : ''}`;
+  
+  const list = document.getElementById('promptList');
+  list.innerHTML = filtered.map((p, i) => `
+    <div class="prompt-card" id="p${i}">
+      <div class="prompt-title">
+        ${p.title}
+        <button class="copy-btn" id="btn${i}" onclick="copyPrompt(${i}, '${p.text.replace(/'/g, "\\'")}')">Copy</button>
+      </div>
+      <div class="prompt-text">${p.text.length > 200 ? p.text.substring(0, 200) + '...' : p.text}</div>
+      <div class="prompt-meta">
+        <span class="tag">${p.cat}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function copyPrompt(idx, text) {
+  navigator.clipboard.writeText(text.replace(/\\n/g, '\n')).then(() => {
+    const btn = document.getElementById('btn' + idx);
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+filterPrompts();
+</script>
+</body>
+</html>
