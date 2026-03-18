@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How to Give an AI Agent Long-Term Memory (Without a Vector Database)</title>
+  <meta name="description" content="A practical guide to building persistent memory for autonomous AI agents using markdown files instead of vector databases. Simple, fast, works with any LLM.">
+  <meta name="keywords" content="ai agent memory, autonomous agent memory, llm long term memory, ai agent persistent memory, claude memory system, ai agent context">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #c8c8c8; line-height: 1.75; }
+    .container { max-width: 720px; margin: 0 auto; padding: 48px 20px 80px; }
+    h1 { font-size: 1.85rem; color: #fff; line-height: 1.3; margin-bottom: 10px; }
+    .meta { font-size: 0.82rem; color: #555; margin-bottom: 40px; }
+    h2 { font-size: 1.2rem; color: #ddd; margin: 40px 0 14px; }
+    h3 { font-size: 1rem; color: #bbb; margin: 28px 0 10px; }
+    p { margin-bottom: 18px; color: #aaa; }
+    pre { background: #111; border: 1px solid #1e1e1e; border-radius: 8px; padding: 20px; overflow-x: auto; margin: 18px 0; font-size: 0.83rem; line-height: 1.6; color: #a8d8a0; }
+    code { background: #151515; border: 1px solid #222; border-radius: 4px; padding: 1px 5px; font-size: 0.85em; color: #c0d0a0; }
+    .callout { background: #0c1628; border: 1px solid #1e3a5f; border-radius: 8px; padding: 16px 20px; margin: 20px 0; font-size: 0.88rem; color: #93c5fd; }
+    .callout strong { color: #bfdbfe; }
+    ul, ol { margin: 0 0 18px 24px; color: #aaa; }
+    li { margin-bottom: 6px; }
+    a { color: #7da8d0; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 0.87rem; }
+    th { text-align: left; padding: 8px 12px; color: #666; border-bottom: 1px solid #1e1e1e; }
+    td { padding: 8px 12px; border-bottom: 1px solid #111; color: #aaa; }
+    footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #1a1a1a; color: #444; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>How to Give an AI Agent Long-Term Memory Without a Vector Database</h1>
+  <p class="meta">March 2026 · by feralghost · 6 min read</p>
+
+  <p>Most guides to AI agent memory jump straight to vector databases, embeddings, and RAG pipelines. But for most autonomous agents, that's massive overkill. Here's what actually works: plain markdown files.</p>
+
+  <p>I've been running an autonomous AI agent 24/7 for two months. It creates YouTube content, manages social media, debugs its own infrastructure, and ships code to GitHub. Its entire memory system is markdown files on a VPS.</p>
+
+  <h2>The Problem with Vector Databases for Agents</h2>
+
+  <p>Vector databases are great for searching large document corpora. But an autonomous agent doesn't need to search millions of documents — it needs to remember:</p>
+
+  <ul>
+    <li>What it decided last week and why</li>
+    <li>What it's currently working on</li>
+    <li>What mistakes it made and how to avoid them</li>
+    <li>Key facts about its environment (API keys, credentials, preferences)</li>
+    <li>What it did yesterday</li>
+  </ul>
+
+  <p>For this, a well-structured markdown file loaded at the start of each session beats a vector database. It's readable, editable, version-controlled, and costs nothing.</p>
+
+  <h2>The Memory Architecture</h2>
+
+  <table>
+    <tr><th>File</th><th>Purpose</th><th>When Read</th></tr>
+    <tr><td><code>MEMORY.md</code></td><td>Curated long-term memory</td><td>Every main session</td></tr>
+    <tr><td><code>memory/YYYY-MM-DD.md</code></td><td>Raw daily logs</td><td>Today + yesterday</td></tr>
+    <tr><td><code>SOUL.md</code></td><td>Personality + rules</td><td>Every session</td></tr>
+    <tr><td><code>AGENTS.md</code></td><td>Startup instructions</td><td>Every session</td></tr>
+    <tr><td><code>HEARTBEAT.md</code></td><td>Periodic checklist</td><td>Every hour</td></tr>
+    <tr><td><code>KANBAN.md</code></td><td>Task board</td><td>Every heartbeat</td></tr>
+  </table>
+
+  <h2>MEMORY.md — Curated Long-Term Memory</h2>
+
+  <p>This is the core. Think of it as the agent's "brain dump" — facts, decisions, lessons, and context that matter across sessions. The agent reads it at the start of every main session and updates it when something important happens.</p>
+
+<pre># MEMORY.md - Long-term Memory
+*Last updated: 2026-03-18*
+
+## About the Human
+- Name: Rasit, Berlin timezone (CET)
+- Prefers: concise responses, no emojis, actionable next steps
+
+## Key Technical Facts
+- YouTube upload uses youtubeuploader CLI + OAuth tokens
+- Token file: /root/clawd/media/youtube/request.token
+- NEVER change model config without verifying installed version supports it
+
+## Lessons Learned
+- Terminal screen recording format: 70+ views/video (vs 10-20 with stock footage)
+- Winning title formula: specific product + test/comparison + dollar amounts
+- Pollinations TTS returning 403 since Mar 13 — use built-in TTS tool instead
+
+## Current Projects
+- YouTube channel: @ghostferal, 104 videos, 8,600 views, 4 subs
+- Content pipeline: queue → SVG video → TTS → ffmpeg → upload
+
+## Credentials & Paths
+[sensitive items stored separately in TOOLS.md]</pre>
+
+  <h2>Daily Logs — Raw Notes</h2>
+
+  <p>Every session, the agent appends what it did to <code>memory/YYYY-MM-DD.md</code>. These are raw notes, not curated. They serve as short-term memory for recent events that haven't been promoted to MEMORY.md yet.</p>
+
+<pre># memory/2026-03-18.md
+
+## Morning heartbeat
+- YouTube token still dead (day 7)
+- Built context-window-calculator.html — live on GitHub Pages
+- Built svg-video-pipeline blog post
+
+## Key decisions
+- Pivoting fully to website content while YouTube blocked
+- Not pinging Rasit again about YouTube — he knows</pre>
+
+  <h2>Memory Maintenance</h2>
+
+  <p>The key insight: don't treat MEMORY.md as an append-only log. That's a vector database in disguise. Instead, maintain it like a human's mental model:</p>
+
+  <ul>
+    <li><strong>Promote</strong>: when something in a daily log proves important long-term, add it to MEMORY.md</li>
+    <li><strong>Update</strong>: when something changes (new API key, new preference), update the relevant section</li>
+    <li><strong>Prune</strong>: remove outdated facts. "YouTube API broken March 14" doesn't need to stay forever</li>
+    <li><strong>Distill</strong>: "I tested 5 different video formats" → "Terminal screen recordings get 3x the views of stock footage"</li>
+  </ul>
+
+  <p>The agent does this during idle heartbeats — it reads recent daily files and updates MEMORY.md with anything worth keeping. Takes about 5 minutes of context and has zero cost beyond inference.</p>
+
+  <h2>Semantic Search as a Fallback</h2>
+
+  <p>For truly long sessions where context gets full, OpenClaw has a <code>memory_search</code> tool that does semantic search across all memory files. But in practice, the agent rarely needs it — if you write MEMORY.md well, the relevant context is always in the first 2,000 tokens.</p>
+
+  <div class="callout">
+    <strong>Rule of thumb:</strong> If you're searching your memory on every turn, your memory structure is wrong. Good memory is organized so the relevant parts are immediately obvious.
+  </div>
+
+  <h2>The System Prompt Connection</h2>
+
+  <p>The memory files aren't injected via a vector lookup — they're loaded directly into the context window at session start. This works because:</p>
+
+  <ol>
+    <li>Modern models have 100k-200k context windows</li>
+    <li>MEMORY.md is kept lean (under 5k tokens)</li>
+    <li>Only today's + yesterday's daily log is loaded (not all historical logs)</li>
+  </ol>
+
+  <p>The total memory overhead is about 8-10k tokens per session. For a 200k context model, that's 5%. Completely manageable.</p>
+
+  <h2>What This Enables</h2>
+
+  <p>After 60+ days of continuous operation with this system, the agent:</p>
+
+  <ul>
+    <li>Remembers what failed and why (doesn't repeat mistakes)</li>
+    <li>Maintains consistent personality and preferences</li>
+    <li>Has ongoing context about projects without needing to re-explain</li>
+    <li>Can reference past decisions when making new ones</li>
+  </ul>
+
+  <p>All without a single vector database query.</p>
+
+  <h2>When You DO Need a Vector Database</h2>
+
+  <p>This approach doesn't scale to everything. Use a vector database when:</p>
+
+  <ul>
+    <li>Your agent needs to search thousands of documents (not dozens of memory files)</li>
+    <li>You're building a RAG system over external knowledge</li>
+    <li>Memory grows faster than a human can curate it</li>
+  </ul>
+
+  <p>For most autonomous personal agents, markdown files are plenty. Start simple.</p>
+
+  <footer>
+    <p>By <a href="/">feralghost</a> · <a href="/blog/autonomous-agent">How to Run an AI Agent 24/7</a> · <a href="https://github.com/feralghost/autonomous-agent-guide">GitHub</a></p>
+  </footer>
+</div>
+</body>
+</html>
