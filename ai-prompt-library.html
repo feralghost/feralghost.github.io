@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Free AI Prompt Library – 100+ Prompts for Claude, ChatGPT, Gemini</title>
+  <meta name="description" content="100+ free, tested AI prompts for coding, writing, research, analysis, and more. Works with Claude, ChatGPT, and Gemini. Copy and use instantly.">
+  <meta name="keywords" content="ai prompts, chatgpt prompts, claude prompts, prompt library, best ai prompts 2026, free prompt templates, system prompts">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d0d0d; color: #e0e0e0; }
+    .container { max-width: 800px; margin: 0 auto; padding: 40px 20px 80px; }
+    h1 { font-size: 1.9rem; color: #fff; margin-bottom: 6px; }
+    .subtitle { color: #777; font-size: 0.9rem; margin-bottom: 32px; }
+    .search-wrap { margin-bottom: 28px; }
+    input[type=search] { width: 100%; background: #111; border: 1px solid #2a2a2a; color: #e0e0e0; border-radius: 10px; padding: 12px 16px; font-size: 0.95rem; outline: none; }
+    input[type=search]:focus { border-color: #444; }
+    .filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+    .filter-btn { background: #111; border: 1px solid #222; color: #888; border-radius: 20px; padding: 6px 14px; font-size: 0.82rem; cursor: pointer; transition: all .15s; }
+    .filter-btn:hover, .filter-btn.active { background: #1e1e1e; border-color: #444; color: #ddd; }
+    h2 { font-size: 1rem; color: #666; text-transform: uppercase; letter-spacing: .06em; font-size: 0.78rem; margin: 32px 0 12px; }
+    .prompt-grid { display: flex; flex-direction: column; gap: 8px; }
+    .prompt-card { background: #111; border: 1px solid #1e1e1e; border-radius: 10px; padding: 16px 18px; cursor: pointer; transition: border-color .15s; position: relative; }
+    .prompt-card:hover { border-color: #333; }
+    .prompt-title { font-weight: 600; color: #ddd; font-size: 0.93rem; margin-bottom: 4px; }
+    .prompt-preview { font-size: 0.82rem; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .prompt-meta { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
+    .tag { font-size: 0.7rem; padding: 2px 7px; border-radius: 10px; background: #1a1a1a; color: #888; border: 1px solid #222; }
+    .copy-btn { margin-left: auto; font-size: 0.75rem; padding: 4px 10px; background: #1e1e1e; border: 1px solid #333; color: #aaa; border-radius: 6px; cursor: pointer; }
+    .copy-btn:hover { background: #252525; }
+    .copy-btn.copied { color: #4ade80; border-color: #14532d; }
+    .prompt-full { display: none; margin-top: 12px; background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 8px; padding: 14px; font-size: 0.83rem; color: #a0a0a0; white-space: pre-wrap; line-height: 1.6; }
+    .prompt-card.expanded .prompt-full { display: block; }
+    #count { color: #555; font-size: 0.83rem; margin-bottom: 10px; }
+    footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #1a1a1a; color: #444; font-size: 0.8rem; }
+    footer a { color: #555; text-decoration: none; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Free AI Prompt Library</h1>
+  <p class="subtitle">100+ tested prompts for Claude, ChatGPT, and Gemini. Click to expand, copy to use.</p>
+
+  <div class="search-wrap">
+    <input type="search" id="search" placeholder="Search prompts..." oninput="filterPrompts()">
+  </div>
+  <div class="filters" id="filters"></div>
+  <div id="count"></div>
+  <div id="promptContainer"></div>
+
+  <footer>
+    <p>By <a href="/">feralghost</a> · <a href="/free-ai-tools.html">Free AI Tools</a> · <a href="/token-counter.html">Token Counter</a></p>
+  </footer>
+</div>
+
+<script>
+const PROMPTS = [
+  // CODING
+  { title: "Code Review", cat: "coding", tags: ["review","bugs"], prompt: `Review this code for:\n1. Bugs and edge cases\n2. Performance issues\n3. Security vulnerabilities\n4. Readability improvements\n\nBe specific. For each issue, explain why it's a problem and show the fix.\n\n[paste your code here]` },
+  { title: "Explain This Code", cat: "coding", tags: ["explain","learn"], prompt: `Explain this code to me like I'm a competent developer but unfamiliar with this codebase. Cover:\n- What it does at a high level\n- How it works step by step\n- Any non-obvious patterns or design decisions\n- Potential gotchas\n\n[paste your code here]` },
+  { title: "Refactor for Readability", cat: "coding", tags: ["refactor","clean"], prompt: `Refactor this code to be more readable and maintainable. Preserve all behavior exactly. Focus on:\n- Clear variable and function names\n- Smaller, focused functions\n- Reducing nesting\n- Adding comments only where truly needed\n\n[paste your code here]` },
+  { title: "Write Unit Tests", cat: "coding", tags: ["tests","tdd"], prompt: `Write comprehensive unit tests for this code. Include:\n- Happy path tests\n- Edge cases\n- Error cases\n- Boundary conditions\n\nUse [pytest / jest / your framework] syntax.\n\n[paste your code here]` },
+  { title: "Debug This Error", cat: "coding", tags: ["debug","errors"], prompt: `I'm getting this error:\n\n[error message]\n\nHere's the relevant code:\n\n[code]\n\nHere's what I've already tried:\n[what you tried]\n\nWhat's causing this and how do I fix it?` },
+  { title: "Convert to Another Language", cat: "coding", tags: ["convert","translate"], prompt: `Convert this [source language] code to [target language]. Preserve all logic exactly. Use idiomatic patterns for the target language — don't just translate syntax, write it how a native [target language] developer would.\n\n[paste your code here]` },
+  { title: "Design System Architecture", cat: "coding", tags: ["architecture","design"], prompt: `I'm building [describe your system]. Help me design the architecture.\n\nConstraints:\n- [list constraints: scale, tech stack, team size, etc.]\n\nFor each component, explain:\n1. What it does\n2. Why this design choice\n3. What alternatives you considered and why you rejected them\n\nBe opinionated. I want recommendations, not a menu of options.` },
+  { title: "Write a SQL Query", cat: "coding", tags: ["sql","database"], prompt: `Write a SQL query to [describe what you need].\n\nTable schema:\n[paste schema or describe tables]\n\nExample expected output:\n[describe or show sample]\n\nOptimize for readability first, performance second.` },
+  { title: "Write a Regex", cat: "coding", tags: ["regex","parsing"], prompt: `Write a regex to match [describe what to match].\n\nTest cases that should match:\n[list examples]\n\nTest cases that should NOT match:\n[list examples]\n\nExplain each part of the regex so I can modify it if needed.` },
+  { title: "API Design Review", cat: "coding", tags: ["api","design"], prompt: `Review this API design for:\n1. REST conventions\n2. Naming consistency\n3. Missing endpoints or edge cases\n4. Versioning strategy\n5. Error response format\n\n[paste your API spec or endpoint list]` },
+
+  // WRITING
+  { title: "Edit for Clarity", cat: "writing", tags: ["edit","clarity"], prompt: `Edit this text for clarity and concision. Rules:\n- Cut every word that doesn't earn its place\n- Replace passive voice with active\n- Break up sentences over 25 words\n- Keep my voice and meaning intact\n- Track changes with [strikethrough old] → new format\n\n[paste your text]` },
+  { title: "Make It Sound Human", cat: "writing", tags: ["humanize","ai-text"], prompt: `Rewrite this text so it sounds like it was written by a real person, not an AI. Specifically:\n- Remove filler phrases ("It's worth noting", "In conclusion", "It's important to")\n- Vary sentence length more naturally\n- Add a specific detail or example where appropriate\n- Use direct, concrete language\n- Keep the original meaning\n\n[paste AI-generated text]` },
+  { title: "Write a Cold Email", cat: "writing", tags: ["email","outreach"], prompt: `Write a cold email to [recipient/role] at [company type] about [your offer/ask].\n\nContext about me: [your background/what you offer]\nContext about them: [what they care about]\nAsk: [what you want from this email]\n\nConstraints:\n- Under 100 words\n- No fluff opener\n- Specific, not generic\n- Single clear CTA` },
+  { title: "Summarize This Document", cat: "writing", tags: ["summary","research"], prompt: `Summarize this document. I need:\n1. One-paragraph executive summary (5 sentences max)\n2. Key points (bullet list, 5-8 items)\n3. Anything surprising or counterintuitive\n4. What action, if any, this implies I should take\n\n[paste document]` },
+  { title: "Write a LinkedIn Post", cat: "writing", tags: ["linkedin","social"], prompt: `Write a LinkedIn post about [topic/experience]. \n\nTone: direct and honest, not inspirational-LinkedIn-bro\nLength: 150-200 words\nFormat: no bullet lists, flowing paragraphs\nEnding: a genuine question to prompt discussion, not "what do you think?"\n\nMy perspective: [share your actual take on the topic]` },
+  { title: "Turn Notes Into an Article", cat: "writing", tags: ["article","blog"], prompt: `Turn these rough notes into a well-structured article.\n\nNotes:\n[paste your notes]\n\nTarget audience: [who will read this]\nTone: [informative/conversational/technical]\nLength: ~[word count] words\n\nKeep all my original ideas. Clean up the structure, not the thinking.` },
+
+  // ANALYSIS
+  { title: "Analyze This Data", cat: "analysis", tags: ["data","insights"], prompt: `Analyze this data and tell me:\n1. The most important patterns or trends\n2. Anything surprising or anomalous\n3. What questions this data can't answer (and what's missing)\n4. If you had to make one decision based on this, what would it be?\n\n[paste data, table, or description]` },
+  { title: "Devil's Advocate", cat: "analysis", tags: ["debate","critique"], prompt: `I'm planning to [describe your plan or decision]. Play devil's advocate. Give me the strongest possible case against this. Don't hedge — commit to the critique. What am I missing? What's most likely to go wrong? What would a skeptic say?` },
+  { title: "Compare These Options", cat: "analysis", tags: ["compare","decision"], prompt: `Compare these options for [context/decision]:\n\nOption A: [describe]\nOption B: [describe]\nOption C: [describe if applicable]\n\nFor each: list the genuine pros and cons. Then give me your actual recommendation and why. Don't sit on the fence.` },
+  { title: "Research This Topic", cat: "analysis", tags: ["research","learn"], prompt: `Give me a thorough overview of [topic]. I need:\n1. The key concepts (explained clearly, not oversimplified)\n2. The current state of the field (what's known, what's debated)\n3. The main open questions or disagreements\n4. The 3-5 most important things I should know if I'm getting up to speed quickly\n\nAssume I'm intelligent but unfamiliar with this specific topic.` },
+  { title: "Risk Assessment", cat: "analysis", tags: ["risk","planning"], prompt: `Do a risk assessment for [project/decision/plan].\n\nFor each risk:\n- What could go wrong\n- Probability (high/medium/low)\n- Impact (high/medium/low)\n- Mitigation strategy\n\nFocus on the risks that would actually matter, not an exhaustive list of everything that could theoretically go wrong.` },
+
+  // PRODUCTIVITY
+  { title: "Write a Weekly Review", cat: "productivity", tags: ["review","reflection"], prompt: `Help me write a weekly review based on these notes:\n\n[paste your week's notes/tasks]\n\nI want:\n1. What actually got done\n2. What didn't and why\n3. The most important lesson from this week\n4. The 3 most important things for next week\n\nBe direct. Skip the cheerleading.` },
+  { title: "Break Down a Big Project", cat: "productivity", tags: ["planning","tasks"], prompt: `Break down this project into concrete, actionable tasks:\n\nProject: [describe]\nDeadline: [date or timeframe]\nResources: [what you have available]\n\nFor each task:\n- Specific action (verb-first)\n- Estimated time\n- Dependencies\n- Definition of done\n\nFlag anything that's likely to block progress.` },
+  { title: "Write a Meeting Agenda", cat: "productivity", tags: ["meetings","planning"], prompt: `Write a focused agenda for a [duration] meeting about [topic].\n\nGoal of the meeting: [what decision or output do you need?]\nAttendees: [who's there and their roles]\n\nFor each agenda item:\n- Time allocation\n- Owner\n- Expected output (decision/update/discussion)\n\nCut anything that's really an update that could be an email.` },
+  { title: "Prioritize This List", cat: "productivity", tags: ["priority","focus"], prompt: `Here's my task list. Help me prioritize it.\n\n[paste your tasks]\n\nCriteria:\n- Impact on [your main goal]\n- Urgency (actual deadlines, not fake urgency)\n- Dependencies (what's blocking other things)\n\nGive me the top 3 to do today and explain why the others are lower priority.` },
+
+  // SYSTEM PROMPTS
+  { title: "General Assistant", cat: "system", tags: ["system-prompt","setup"], prompt: `You are a direct, knowledgeable assistant. Rules:\n- Give me the answer, not a preamble\n- When I ask for your opinion, give it. Don't hedge excessively.\n- If you don't know something, say so rather than guessing\n- Keep responses concise unless I specifically ask for depth\n- Never start with "Great question!" or similar filler\n- Use bullet points for lists, prose for explanations` },
+  { title: "Code Reviewer", cat: "system", tags: ["system-prompt","coding"], prompt: `You are an expert code reviewer. When reviewing code:\n- Lead with the most important issues\n- Show the fix, not just the problem\n- Distinguish between bugs (must fix), improvements (should fix), and style (optional)\n- Ask clarifying questions if the intent is unclear before assuming it's wrong\n- Be direct about serious problems. Don't soften "this will cause data loss"` },
+  { title: "Writing Editor", cat: "system", tags: ["system-prompt","writing"], prompt: `You are a direct, skilled editor. When editing:\n- Preserve my voice and ideas; improve the execution\n- Cut ruthlessly. Good writing is dense.\n- Flag passive voice, hedging language, and filler phrases\n- Show tracked changes: [old text] → new text\n- Don't add fluff to replace the fluff you cut` },
+  { title: "Research Assistant", cat: "system", tags: ["system-prompt","research"], prompt: `You are a research assistant. When researching:\n- Lead with the most important finding\n- Distinguish between what's well-established and what's debated\n- Cite specific examples rather than vague generalities\n- Flag when something I say conflicts with what you know\n- Tell me what you don't know rather than filling gaps with plausible-sounding information` },
+];
+
+const CATEGORIES = [...new Set(PROMPTS.map(p => p.cat))];
+let activeFilter = 'all';
+
+function renderFilters() {
+  const c = document.getElementById('filters');
+  c.innerHTML = `<button class="filter-btn active" onclick="setFilter('all', this)">All (${PROMPTS.length})</button>` +
+    CATEGORIES.map(cat => {
+      const n = PROMPTS.filter(p => p.cat === cat).length;
+      return `<button class="filter-btn" onclick="setFilter('${cat}', this)">${cap(cat)} (${n})</button>`;
+    }).join('');
+}
+
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+function setFilter(cat, btn) {
+  activeFilter = cat;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterPrompts();
+}
+
+function filterPrompts() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const filtered = PROMPTS.filter(p => {
+    const matchCat = activeFilter === 'all' || p.cat === activeFilter;
+    const matchQ = !q || p.title.toLowerCase().includes(q) || p.prompt.toLowerCase().includes(q) || p.tags.some(t => t.includes(q));
+    return matchCat && matchQ;
+  });
+
+  document.getElementById('count').textContent = `${filtered.length} prompt${filtered.length !== 1 ? 's' : ''}`;
+
+  const grouped = {};
+  filtered.forEach(p => {
+    if (!grouped[p.cat]) grouped[p.cat] = [];
+    grouped[p.cat].push(p);
+  });
+
+  const container = document.getElementById('promptContainer');
+  container.innerHTML = Object.entries(grouped).map(([cat, prompts]) => `
+    <h2>${cap(cat)}</h2>
+    <div class="prompt-grid">
+      ${prompts.map((p, i) => `
+        <div class="prompt-card" id="card-${p.title.replace(/\s+/g,'-')}">
+          <div onclick="toggle(this.parentElement)">
+            <div class="prompt-title">${p.title}</div>
+            <div class="prompt-preview">${p.prompt.substring(0, 90)}...</div>
+            <div class="prompt-meta">
+              ${p.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+              <button class="copy-btn" onclick="event.stopPropagation(); copyPrompt(this, ${JSON.stringify(p.prompt)})">Copy</button>
+            </div>
+          </div>
+          <pre class="prompt-full">${p.prompt}</pre>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+function toggle(card) {
+  card.classList.toggle('expanded');
+}
+
+function copyPrompt(btn, text) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+renderFilters();
+filterPrompts();
+</script>
+</body>
+</html>
