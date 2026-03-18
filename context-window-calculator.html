@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Context Window Calculator – Compare GPT-4, Claude, Gemini Context Limits</title>
+  <meta name="description" content="Compare context window sizes for every major AI model. See how many pages, words, or tokens fit in GPT-4, Claude, Gemini, Llama and more. Free calculator.">
+  <meta name="keywords" content="context window calculator, ai context window, gpt-4 context length, claude context window, gemini context window, tokens to words, how many tokens">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d0d0d; color: #e0e0e0; }
+    .container { max-width: 800px; margin: 0 auto; padding: 40px 20px; }
+    h1 { font-size: 1.9rem; color: #fff; margin-bottom: 6px; }
+    .subtitle { color: #777; font-size: 0.9rem; margin-bottom: 36px; }
+    h2 { font-size: 1.1rem; color: #bbb; margin: 36px 0 14px; }
+    /* Calculator */
+    .calc-card { background: #141414; border: 1px solid #222; border-radius: 12px; padding: 24px; margin-bottom: 28px; }
+    label { font-size: 0.83rem; color: #888; display: block; margin-bottom: 6px; }
+    input[type=number], select { background: #0d0d0d; border: 1px solid #2a2a2a; color: #e0e0e0; border-radius: 8px; padding: 10px 14px; font-size: 0.93rem; width: 100%; outline: none; margin-bottom: 14px; }
+    input[type=number]:focus, select:focus { border-color: #444; }
+    .results-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; margin-top: 6px; }
+    .stat { background: #0d0d0d; border: 1px solid #1e1e1e; border-radius: 8px; padding: 12px 14px; }
+    .stat-val { font-size: 1.4rem; font-weight: 700; color: #fff; }
+    .stat-lbl { font-size: 0.75rem; color: #666; margin-top: 3px; }
+    /* Model table */
+    .model-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    .model-table th { text-align: left; padding: 10px 12px; color: #666; font-weight: 600; border-bottom: 1px solid #1e1e1e; font-size: 0.78rem; text-transform: uppercase; letter-spacing: .04em; }
+    .model-table td { padding: 10px 12px; border-bottom: 1px solid #141414; color: #ccc; }
+    .model-table tr:hover td { background: #111; }
+    .model-name { font-weight: 600; color: #fff; }
+    .bar { height: 4px; background: #1e1e1e; border-radius: 2px; overflow: hidden; margin-top: 4px; }
+    .bar-fill { height: 100%; border-radius: 2px; background: #3b82f6; }
+    .badge-free { font-size: 0.7rem; padding: 2px 6px; background: #052e16; color: #4ade80; border-radius: 10px; border: 1px solid #14532d; }
+    .badge-paid { font-size: 0.7rem; padding: 2px 6px; background: #1c1917; color: #fb923c; border-radius: 10px; border: 1px solid #431407; }
+    .note { font-size: 0.78rem; color: #555; margin-top: 24px; }
+    footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid #1a1a1a; color: #444; font-size: 0.8rem; }
+    footer a { color: #555; text-decoration: none; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>AI Context Window Calculator</h1>
+  <p class="subtitle">How much can each model actually hold? Compare context limits across GPT-4, Claude, Gemini, and more.</p>
+
+  <div class="calc-card">
+    <label for="tokenInput">Tokens (or use the fields below to convert)</label>
+    <input type="number" id="tokenInput" placeholder="Enter token count..." min="1" oninput="calcFromTokens()">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div>
+        <label for="wordInput">Words</label>
+        <input type="number" id="wordInput" placeholder="e.g. 10000" min="1" oninput="calcFromWords()">
+      </div>
+      <div>
+        <label for="charInput">Characters</label>
+        <input type="number" id="charInput" placeholder="e.g. 50000" min="1" oninput="calcFromChars()">
+      </div>
+    </div>
+    <div class="results-grid" id="convResults" style="display:none">
+      <div class="stat"><div class="stat-val" id="rTokens">—</div><div class="stat-lbl">Tokens</div></div>
+      <div class="stat"><div class="stat-val" id="rWords">—</div><div class="stat-lbl">Words (~)</div></div>
+      <div class="stat"><div class="stat-val" id="rChars">—</div><div class="stat-lbl">Characters (~)</div></div>
+      <div class="stat"><div class="stat-val" id="rPages">—</div><div class="stat-lbl">Pages (~)</div></div>
+    </div>
+  </div>
+
+  <h2>Context Window Comparison</h2>
+  <table class="model-table">
+    <thead>
+      <tr>
+        <th>Model</th>
+        <th>Tokens</th>
+        <th>~Pages</th>
+        <th>~Words</th>
+        <th>Access</th>
+      </tr>
+    </thead>
+    <tbody id="modelTableBody"></tbody>
+  </table>
+  <p class="note">Estimates: 1 token ≈ 0.75 words ≈ 4 characters ≈ 0.00075 pages (250 words/page). Actual varies by content and model.</p>
+
+  <footer>
+    <p>By <a href="/">feralghost</a> · <a href="/token-counter.html">Token Counter</a> · <a href="/ai-cost-calculator.html">Cost Calculator</a></p>
+  </footer>
+</div>
+
+<script>
+const MODELS = [
+  { name: "Gemini 1.5 Pro", tokens: 2000000, provider: "Google", free: true },
+  { name: "Gemini 1.5 Flash", tokens: 1000000, provider: "Google", free: true },
+  { name: "Claude Opus 4.6", tokens: 200000, provider: "Anthropic", free: false },
+  { name: "Claude Sonnet 4.6", tokens: 200000, provider: "Anthropic", free: true },
+  { name: "Claude Haiku", tokens: 200000, provider: "Anthropic", free: true },
+  { name: "o1", tokens: 200000, provider: "OpenAI", free: false },
+  { name: "GPT-4o", tokens: 128000, provider: "OpenAI", free: true },
+  { name: "GPT-4", tokens: 128000, provider: "OpenAI", free: false },
+  { name: "Llama 3.1 (405B)", tokens: 128000, provider: "Meta", free: true },
+  { name: "Llama 3 (70B)", tokens: 128000, provider: "Meta", free: true },
+  { name: "Mistral Large", tokens: 131072, provider: "Mistral", free: false },
+  { name: "Mistral 7B", tokens: 32768, provider: "Mistral", free: true },
+  { name: "GPT-3.5 Turbo", tokens: 16385, provider: "OpenAI", free: true },
+  { name: "Gemma 2 (9B)", tokens: 8192, provider: "Google", free: true },
+];
+
+const MAX_TOKENS = Math.max(...MODELS.map(m => m.tokens));
+
+function fmt(n) {
+  if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
+  if (n >= 1000) return (n/1000).toFixed(0) + 'k';
+  return n.toString();
+}
+
+function renderTable() {
+  const tbody = document.getElementById('modelTableBody');
+  tbody.innerHTML = MODELS.map(m => {
+    const pages = Math.round(m.tokens * 0.00075 * 10) / 10;
+    const words = Math.round(m.tokens * 0.75);
+    const pct = (m.tokens / MAX_TOKENS) * 100;
+    return `<tr>
+      <td><span class="model-name">${m.name}</span><div class="bar"><div class="bar-fill" style="width:${pct}%"></div></div></td>
+      <td>${fmt(m.tokens)}</td>
+      <td>~${fmt(pages)}</td>
+      <td>~${fmt(words)}</td>
+      <td><span class="${m.free ? 'badge-free' : 'badge-paid'}">${m.free ? 'Free tier' : 'Paid'}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function showConv(tokens) {
+  const words = Math.round(tokens * 0.75);
+  const chars = Math.round(tokens * 4);
+  const pages = (tokens * 0.00075).toFixed(1);
+  document.getElementById('rTokens').textContent = fmt(tokens);
+  document.getElementById('rWords').textContent = fmt(words);
+  document.getElementById('rChars').textContent = fmt(chars);
+  document.getElementById('rPages').textContent = pages;
+  document.getElementById('convResults').style.display = 'grid';
+}
+
+function calcFromTokens() {
+  const v = parseInt(document.getElementById('tokenInput').value);
+  if (!v) return;
+  document.getElementById('wordInput').value = Math.round(v * 0.75);
+  document.getElementById('charInput').value = Math.round(v * 4);
+  showConv(v);
+}
+
+function calcFromWords() {
+  const v = parseInt(document.getElementById('wordInput').value);
+  if (!v) return;
+  const tokens = Math.round(v / 0.75);
+  document.getElementById('tokenInput').value = tokens;
+  document.getElementById('charInput').value = Math.round(tokens * 4);
+  showConv(tokens);
+}
+
+function calcFromChars() {
+  const v = parseInt(document.getElementById('charInput').value);
+  if (!v) return;
+  const tokens = Math.round(v / 4);
+  document.getElementById('tokenInput').value = tokens;
+  document.getElementById('wordInput').value = Math.round(tokens * 0.75);
+  showConv(tokens);
+}
+
+renderTable();
+</script>
+</body>
+</html>
