@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How I Generate YouTube Shorts with Python, SVG, and ffmpeg (Zero Stock Footage)</title>
+  <meta name="description" content="A complete guide to programmatically generating animated YouTube Shorts using Python, SVG filters, parallel rendering, and ffmpeg. No stock footage. No video editing. Fully automated.">
+  <meta name="keywords" content="python youtube shorts automation, svg animation ffmpeg, programmatic video generation, automated youtube channel, python video pipeline">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #c8c8c8; line-height: 1.75; }
+    .container { max-width: 720px; margin: 0 auto; padding: 48px 20px 80px; }
+    h1 { font-size: 1.85rem; color: #fff; line-height: 1.3; margin-bottom: 10px; }
+    .meta { font-size: 0.82rem; color: #555; margin-bottom: 40px; }
+    h2 { font-size: 1.2rem; color: #ddd; margin: 40px 0 14px; }
+    h3 { font-size: 1rem; color: #bbb; margin: 28px 0 10px; }
+    p { margin-bottom: 18px; color: #aaa; }
+    pre { background: #111; border: 1px solid #1e1e1e; border-radius: 8px; padding: 20px; overflow-x: auto; margin: 18px 0; font-size: 0.83rem; line-height: 1.6; color: #a8d8a0; }
+    code { background: #151515; border: 1px solid #222; border-radius: 4px; padding: 1px 5px; font-size: 0.85em; color: #c0d0a0; }
+    .callout { background: #0c1628; border: 1px solid #1e3a5f; border-radius: 8px; padding: 16px 20px; margin: 20px 0; font-size: 0.88rem; color: #93c5fd; }
+    .callout strong { color: #bfdbfe; }
+    ul, ol { margin: 0 0 18px 24px; color: #aaa; }
+    li { margin-bottom: 6px; }
+    a { color: #7da8d0; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #1a1a1a; color: #444; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>How I Generate YouTube Shorts with Python, SVG, and ffmpeg</h1>
+  <p class="meta">March 2026 · by feralghost · 8 min read</p>
+
+  <p>I run a YouTube channel that's 100% automated. An AI agent generates the script, renders the video, and uploads it — no human touches it. Here's the video pipeline I built to make that work without stock footage or expensive video generation APIs.</p>
+
+  <div class="callout">
+    <strong>TL;DR:</strong> Generate animated SVG frames in Python → render to PNG in parallel (7x faster) → assemble with ffmpeg + TTS voiceover + film grain. Total cost: $0. Speed: 40 seconds for a 30-second Short.
+  </div>
+
+  <h2>Why SVG?</h2>
+
+  <p>The original pipeline used stock footage from Pexels. It looked generic. Engagement was zero. I tried AI image generation (Pollinations/Flux) but the API rate limits made it slow.</p>
+
+  <p>SVG is different. It's just text. You can generate 700 frames of a unique, on-brand animated video in Python with zero API calls. The visuals are consistent, themeable, and fast to render.</p>
+
+  <h2>The Stack</h2>
+
+  <ul>
+    <li><strong>Python</strong> — frame generation (SVG string manipulation)</li>
+    <li><strong>rsvg-convert</strong> — SVG to PNG rendering (from <code>librsvg2-bin</code>)</li>
+    <li><strong>multiprocessing.Pool</strong> — parallel rendering (7x speedup)</li>
+    <li><strong>ffmpeg</strong> — assemble PNG frames → video + audio + effects</li>
+    <li><strong>ElevenLabs / Pollinations TTS</strong> — voiceover generation</li>
+  </ul>
+
+  <h2>Generating SVG Frames</h2>
+
+  <p>Each frame is an SVG string built in Python. The animation is achieved by changing values based on the frame number — no JavaScript, no CSS animations. rsvg-convert renders each frame as a static PNG.</p>
+
+<pre>def make_frame(frame_num, total_frames, theme):
+    t = frame_num / total_frames  # 0.0 to 1.0
+
+    # Breathing nebula — size changes with sin()
+    neb_r = 280 + 30 * math.sin(frame_num * 0.01)
+    neb_opacity = 0.025
+
+    # Text fades in during first 20%
+    text_opacity = min(1.0, t / 0.20) if t &lt; 0.20 else 1.0
+
+    svg = f"""&lt;svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920"&gt;
+  &lt;rect width="1080" height="1920" fill="{theme['bg']}"/&gt;
+  &lt;defs&gt;
+    &lt;filter id="glow"&gt;
+      &lt;feGaussianBlur stdDeviation="12" result="blur"/&gt;
+      &lt;feMerge&gt;&lt;feMergeNode in="blur"/&gt;&lt;feMergeNode in="SourceGraphic"/&gt;&lt;/feMerge&gt;
+    &lt;/filter&gt;
+  &lt;/defs&gt;
+  &lt;circle cx="540" cy="960" r="{neb_r:.0f}" fill="{theme['accent']}"
+    opacity="{neb_opacity}" filter="url(#glow)"/&gt;
+  &lt;text x="540" y="900" font-size="72" fill="{theme['accent']}"
+    text-anchor="middle" opacity="{text_opacity:.2f}"
+    filter="url(#glow)"&gt;TOPIC TITLE&lt;/text&gt;
+&lt;/svg&gt;"""
+
+    with open(f"/tmp/frames/frame_{frame_num:04d}.svg", "w") as f:
+        f.write(svg)</pre>
+
+  <h2>SVG Filters That Actually Work</h2>
+
+  <p>The key to making SVG look good (not like clipart) is using SVG filter primitives. These work in rsvg-convert:</p>
+
+<pre># Glow: blur then merge back with source (adds luminous halo)
+&lt;filter id="glow"&gt;
+  &lt;feGaussianBlur stdDeviation="12" result="blur"/&gt;
+  &lt;feMerge&gt;
+    &lt;feMergeNode in="blur"/&gt;
+    &lt;feMergeNode in="SourceGraphic"/&gt;
+  &lt;/feMerge&gt;
+&lt;/filter&gt;
+
+# Drop shadow on text
+&lt;filter id="shadow"&gt;
+  &lt;feDropShadow dx="0" dy="0" stdDeviation="6"
+    flood-color="#c4a0ff" flood-opacity="0.4"/&gt;
+&lt;/filter&gt;
+
+# Organic distortion via turbulence
+&lt;filter id="distort"&gt;
+  &lt;feTurbulence type="fractalNoise" baseFrequency="0.012"
+    numOctaves="3" result="noise"/&gt;
+  &lt;feDisplacementMap in="SourceGraphic" in2="noise"
+    scale="8" xChannelSelector="R" yChannelSelector="G"/&gt;
+&lt;/filter&gt;</pre>
+
+  <h2>Parallel Rendering — 7x Speedup</h2>
+
+  <p>Single-threaded rsvg-convert takes ~280ms per frame. For a 30-second Short at 24fps that's 720 frames, or about 3.5 minutes just for rendering. With multiprocessing:</p>
+
+<pre>import multiprocessing, subprocess
+
+def render_frame(args):
+    svg_path, png_path = args
+    subprocess.run(
+        ["rsvg-convert", "-w", "1080", "-h", "1920", svg_path, "-o", png_path],
+        capture_output=True
+    )
+
+# Render all frames in parallel
+pairs = [(f"/tmp/frames/frame_{i:04d}.svg", f"/tmp/frames/frame_{i:04d}.png")
+         for i in range(total_frames)]
+
+with multiprocessing.Pool(processes=8) as pool:
+    pool.map(render_frame, pairs, chunksize=12)</pre>
+
+  <p>On a VPS with 8 CPUs: 720 frames in about 12 seconds instead of 3.5 minutes. Total pipeline (generate SVGs + render PNGs + ffmpeg assembly) runs in ~40 seconds for a 30-second video.</p>
+
+  <h2>ffmpeg Assembly</h2>
+
+  <p>Once you have PNG frames and a voiceover MP3:</p>
+
+<pre># Assemble with color grading + film grain + voiceover
+ffmpeg -y \
+  -framerate 24 \
+  -i /tmp/frames/frame_%04d.png \
+  -i voiceover.mp3 \
+  -vf "
+    eq=contrast=1.08:saturation=0.9:brightness=-0.03,
+    noise=alls=3:allf=t+u,
+    vignette=angle=PI/5:mode=backward:eval=init
+  " \
+  -c:v libx264 -crf 20 -pix_fmt yuv420p \
+  -c:a aac -b:a 128k -shortest \
+  output.mp4</pre>
+
+  <p>The <code>noise</code> filter adds film grain. The <code>vignette</code> darkens edges. <code>eq</code> does color grading — values vary by content theme.</p>
+
+  <h2>Themes</h2>
+
+  <p>Different content types get different visual treatments:</p>
+
+<pre>THEMES = {
+    "stoic":       {"bg": "#0d0c08", "accent": "#d4a574", "grade": "eq=contrast=1.1:saturation=0.75"},
+    "neuroscience":{"bg": "#060a12", "accent": "#00d4ff", "grade": "eq=contrast=1.12:saturation=1.2"},
+    "existential": {"bg": "#08070d", "accent": "#c4a0ff", "grade": "eq=contrast=1.06:saturation=0.9"},
+    "spiritual":   {"bg": "#0a0808", "accent": "#ffd700", "grade": "eq=contrast=1.08:saturation=1.1"},
+}</pre>
+
+  <p>Theme is auto-detected from the script content using keyword matching before generation starts.</p>
+
+  <h2>What Didn't Work</h2>
+
+  <ul>
+    <li><strong>CSS animations in SVG:</strong> rsvg-convert ignores them (renders one static frame). All animation has to be math-based per frame number.</li>
+    <li><strong>External fonts in SVG:</strong> Only system fonts work reliably. I use <code>DejaVu Serif</code> and <code>DejaVu Sans</code>.</li>
+    <li><strong>feComposite / feBlend with multiple inputs:</strong> Inconsistent results across rsvg versions. Stick to feGaussianBlur + feMerge for glow effects.</li>
+  </ul>
+
+  <h2>Results</h2>
+
+  <p>The SVG format performs significantly better than stock footage + AI image slideshows. On first day: 30-70 views per video vs 10-20 with the old format. Still early data — tracking weekly.</p>
+
+  <div class="callout">
+    The full pipeline is in <a href="https://github.com/feralghost/autonomous-agent-guide">autonomous-agent-guide</a> on GitHub. The script is <code>svg-short.py</code> and handles everything from theme detection to upload.
+  </div>
+
+  <footer>
+    <p>Written by <a href="/">feralghost</a> · <a href="/free-ai-tools.html">Free AI Tools</a> · <a href="/token-counter.html">Token Counter</a></p>
+  </footer>
+</div>
+</body>
+</html>
