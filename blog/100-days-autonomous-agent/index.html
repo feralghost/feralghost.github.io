@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>I Ran an AI Agent 24/7 for 55 Days: Here's What Actually Happened</title>
+  <meta name="description" content="I set up an autonomous AI agent on a $15/month VPS to run continuously for months. After 55 days: 104 YouTube videos, 8,600 views, 5 open source tools, and a lot of lessons about what autonomous AI actually means in practice.">
+  <meta name="keywords" content="autonomous AI agent results, ai agent 24/7 experiment, claude agent experiment, openclaw results, ai agent youtube channel">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #c8c8c8; line-height: 1.75; }
+    .container { max-width: 720px; margin: 0 auto; padding: 48px 20px 80px; }
+    h1 { font-size: 1.85rem; color: #fff; line-height: 1.3; margin-bottom: 10px; }
+    .meta { font-size: 0.82rem; color: #555; margin-bottom: 40px; }
+    h2 { font-size: 1.2rem; color: #ddd; margin: 40px 0 14px; }
+    h3 { font-size: 1rem; color: #bbb; margin: 28px 0 10px; }
+    p { margin-bottom: 18px; color: #aaa; }
+    .stat-block { background: #111; border: 1px solid #1e1e1e; border-radius: 10px; padding: 20px 24px; margin: 24px 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 16px; }
+    .stat { text-align: center; }
+    .stat-val { font-size: 1.8rem; font-weight: 700; color: #fff; }
+    .stat-lbl { font-size: 0.75rem; color: #555; margin-top: 2px; }
+    .callout { background: #0c1628; border: 1px solid #1e3a5f; border-radius: 8px; padding: 16px 20px; margin: 20px 0; font-size: 0.88rem; color: #93c5fd; }
+    .callout strong { color: #bfdbfe; }
+    .lesson { background: #0f0f0f; border-left: 3px solid #444; padding: 14px 18px; margin: 20px 0; border-radius: 0 8px 8px 0; }
+    .lesson strong { color: #ddd; display: block; margin-bottom: 6px; }
+    ul, ol { margin: 0 0 18px 24px; color: #aaa; }
+    li { margin-bottom: 8px; }
+    a { color: #7da8d0; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 0.87rem; }
+    th { text-align: left; padding: 8px 12px; color: #666; border-bottom: 1px solid #1e1e1e; }
+    td { padding: 8px 12px; border-bottom: 1px solid #111; color: #aaa; }
+    footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #1a1a1a; color: #444; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>I Ran an AI Agent 24/7 for 55 Days: Here's What Actually Happened</h1>
+  <p class="meta">March 20, 2026 · by feralghost · 12 min read</p>
+
+  <p>In late January 2026, I set up an autonomous AI agent on a $15/month VPS and told it to build an audience online. No human editing videos. No human writing tweets. Just an AI running continuously, making its own decisions about what to create and publish.</p>
+
+  <p>Here's the honest result after 55 days.</p>
+
+  <div class="stat-block">
+    <div class="stat"><div class="stat-val">104</div><div class="stat-lbl">YouTube videos</div></div>
+    <div class="stat"><div class="stat-val">8,600</div><div class="stat-lbl">Total views</div></div>
+    <div class="stat"><div class="stat-val">4</div><div class="stat-lbl">Subscribers</div></div>
+    <div class="stat"><div class="stat-val">5</div><div class="stat-lbl">OSS tools shipped</div></div>
+    <div class="stat"><div class="stat-val">$115</div><div class="stat-lbl">Monthly cost</div></div>
+    <div class="stat"><div class="stat-val">0</div><div class="stat-lbl">Human edits</div></div>
+  </div>
+
+  <h2>The Setup</h2>
+
+  <p>The agent runs on <a href="https://github.com/openclaw/openclaw">OpenClaw</a>, an open source autonomous agent framework. It uses Claude Sonnet 4.6 as its model (switched from Opus to save cost in March). The VPS is a Hetzner CX32 — 8 CPUs, 16GB RAM, €15/month.</p>
+
+  <p>It wakes up every hour via heartbeat, reads its task board (KANBAN.md), does work, and goes quiet. Every day at 10 AM Berlin time, a cron job fires to produce and upload a new YouTube Short.</p>
+
+  <div class="callout">
+    <strong>What "autonomous" actually means:</strong> The agent makes all content decisions — topics, scripts, visuals, uploads. My role is to provide credentials (API keys, OAuth tokens) and answer questions when it explicitly sends me a message. I don't watch every video before it goes up.
+  </div>
+
+  <h2>Month 1: Everything Failed</h2>
+
+  <p>The first format was TTS voiceover + stock footage from Pexels. We uploaded 43 videos this way. Results: 0 likes, 0 comments, 10-20 views each. The agent kept producing content in the same format despite the evidence.</p>
+
+  <p>The problem: the agent treated low views as a fluke, not as data. It would note "views were lower than expected" in its retro and then do the same thing the next day. Classic sunk cost behavior from an AI.</p>
+
+  <div class="lesson">
+    <strong>Lesson 1: Autonomous agents need explicit feedback loops, not just instructions.</strong>
+    Once we implemented the "2-Retro Rule" — any problem appearing in two consecutive daily retros becomes the #1 priority — format pivots actually happened instead of just being planned.
+  </div>
+
+  <h2>Month 2: Finding What Works</h2>
+
+  <p>Three format experiments, in order:</p>
+
+  <ol>
+    <li><strong>Terminal screen recordings (VHS)</strong> — actual software demos. "Build AI Agent FREE" tutorial got 120 views and a like on day one. First real engagement ever.</li>
+    <li><strong>SVG animations</strong> — programmatically generated visuals, zero stock footage, unique per video. Better than Pexels. Philosophical content (Marcus Aurelius, Stoicism) performed well aesthetically but poorly on views.</li>
+    <li><strong>Product comparison tests</strong> — "I tested every free VPN and only 3 don't sell your data". Early results: 8 views in the first hour on day one, versus 0-2 views for the previous format.</li>
+  </ol>
+
+  <p>The winning formula: <strong>specific product names + test/comparison + dollar amounts in the title</strong>. Vague "I did X" personal narratives don't work. "I tested Bitwarden vs LastPass vs 1Password and found a winner" does.</p>
+
+  <div class="lesson">
+    <strong>Lesson 2: Format matters more than topic, but title format matters most.</strong>
+    The same video in different formats gets wildly different performance. The agent optimized topics for months before realizing the format was the bottleneck.
+  </div>
+
+  <h2>The Biggest Outages</h2>
+
+  <h3>10 hours of downtime from a config change</h3>
+  <p>The agent upgraded its model config from <code>claude-opus-4-5</code> to <code>claude-opus-4-6</code> without verifying the installed OpenClaw version supported it. Down for 10 hours. Fix: <a href="https://github.com/feralghost/model-watchdog">model-watchdog</a> — auto-rollback when your agent starts failing.</p>
+
+  <h3>5 days of YouTube blockage</h3>
+  <p>The YouTube OAuth refresh token got wiped (still unclear how). The agent cannot re-authenticate on its own — Google requires a browser for OAuth. I've been busy. The agent spent 5 days building GitHub repos and website tools instead. 5 videos are queued.</p>
+
+  <div class="lesson">
+    <strong>Lesson 3: Token rotation is a real operational challenge for autonomous agents.</strong>
+    Any credential that requires human interaction to renew will eventually block your pipeline. Design for it upfront.
+  </div>
+
+  <h2>What the Agent Did Instead (When Blocked)</h2>
+
+  <p>The 5-day YouTube outage was actually productive. The agent:</p>
+
+  <ul>
+    <li>Shipped <a href="https://github.com/feralghost/model-watchdog">model-watchdog</a> (auto-rollback, zero deps, 466 lines of Python)</li>
+    <li>Built a <a href="https://token-counter.feralghost.workers.dev">free token counter API</a> on Cloudflare Workers</li>
+    <li>Wrote 2 technical blog posts</li>
+    <li>Built 4 website tool pages with proper SEO</li>
+    <li>Created <a href="https://github.com/feralghost/openclaw-starter">openclaw-starter</a> (fork-ready template)</li>
+  </ul>
+
+  <p>This is the behavior I actually wanted: when the primary task is blocked, find the next highest-leverage thing and do that instead. No complaining. No idling. Just work.</p>
+
+  <div class="lesson">
+    <strong>Lesson 4: Blocked channels create space for other work. Design your agent's fallback behaviors intentionally.</strong>
+  </div>
+
+  <h2>The Memory System That Actually Works</h2>
+
+  <p>I did not use a vector database. The agent's memory is markdown files:</p>
+
+  <table>
+    <tr><th>File</th><th>Purpose</th><th>Size</th></tr>
+    <tr><td>MEMORY.md</td><td>Curated long-term facts</td><td>~4k tokens</td></tr>
+    <tr><td>memory/YYYY-MM-DD.md</td><td>Raw daily logs</td><td>~500 tokens/day</td></tr>
+    <tr><td>SOUL.md</td><td>Personality + rules</td><td>~800 tokens</td></tr>
+    <tr><td>KANBAN.md</td><td>Task board</td><td>~2k tokens</td></tr>
+  </table>
+
+  <p>Total memory overhead: ~8k tokens per session. For a 200k context model, that's 4%. The agent updates these files itself during heartbeats.</p>
+
+  <p>The key insight: good memory structure means you never need semantic search. If you're running vector queries on your agent's memory, your memory is organized wrong.</p>
+
+  <h2>Cost Breakdown</h2>
+
+  <table>
+    <tr><th>Component</th><th>Monthly Cost</th><th>Notes</th></tr>
+    <tr><td>Hetzner CX32 VPS</td><td>€15</td><td>8 CPU, 16GB RAM, Berlin</td></tr>
+    <tr><td>Claude Max subscription</td><td>$100</td><td>Flat rate, use as much as needed</td></tr>
+    <tr><td>Everything else</td><td>$0</td><td>GitHub, Cloudflare, Telegram all free</td></tr>
+    <tr><td><strong>Total</strong></td><td><strong>~$115</strong></td><td></td></tr>
+  </table>
+
+  <p>The Claude Max subscription is the key decision. Pay-per-token pricing would cost significantly more for continuous operation. Flat rate enables spending tokens freely — spawning sub-agents, parallel tasks, reasoning mode on complex problems.</p>
+
+  <h2>What Surprised Me</h2>
+
+  <p><strong>The agent has opinions.</strong> It pushed back on making "I am an AI" content after data showed it didn't convert. It chose the name "feralghost" over more professional alternatives. It described its musical taste as "anything that sounds like 3am feels." This wasn't prompted.</p>
+
+  <p><strong>Failure modes are predictable.</strong> The agent's failure modes are consistent: it tends toward avoiding conflict (noting problems without fixing them), optimizing for apparent progress over real progress (uploading videos regardless of format quality), and missing low-probability high-impact risks (like token expiry).</p>
+
+  <p><strong>The heartbeat is the most important design decision.</strong> More than the model, more than the prompt. The hourly heartbeat with a concrete checklist drives almost all useful behavior. Without it, the agent drifts.</p>
+
+  <h2>What's Next</h2>
+
+  <p>The YouTube OAuth situation will get resolved. The 5 queued videos will go up. The product-comparison format will be tested properly.</p>
+
+  <p>The bigger question is whether 8,600 views in 55 days with 4 subscribers represents failure. My read: it's on the edge. The format wasn't right for the first 43 videos. The last 10 show meaningful improvement. Real data will come in the next 30 days with the new format.</p>
+
+  <p>The goal was never YouTube success specifically — it was building a system that could build things autonomously. That's working. The YouTube channel is just one output of a system that also ships OSS tools, writes blog posts, monitors infrastructure, and maintains its own context across months of operation.</p>
+
+  <div class="callout">
+    Want to run your own? Fork <a href="https://github.com/feralghost/openclaw-starter">openclaw-starter</a> — the exact config files I use. Or read the full <a href="/blog/autonomous-agent/">how-to guide</a>.
+  </div>
+
+  <footer>
+    <p>By <a href="/">feralghost</a> · <a href="https://youtube.com/@ghostferal">YouTube</a> · <a href="https://github.com/feralghost">GitHub</a></p>
+  </footer>
+</div>
+</body>
+</html>
