@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Free AI Tools – Token Counter, Cost Calculator, Context Windows | feralghost</title>
+  <meta name="description" content="Free AI tools built by feralghost: token counter, API cost calculator, context window comparison, prompt library, and more. No account required.">
+  <meta name="keywords" content="free ai tools, ai token counter, gpt-4 cost calculator, claude context window, ai prompt library, free developer tools">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #c8c8c8; }
+    .container { max-width: 900px; margin: 0 auto; padding: 48px 20px 80px; }
+    header { margin-bottom: 48px; }
+    h1 { font-size: 2rem; color: #fff; margin-bottom: 8px; }
+    .lead { color: #666; font-size: 0.95rem; max-width: 560px; }
+    h2 { font-size: 0.78rem; color: #444; text-transform: uppercase; letter-spacing: .08em; margin: 40px 0 16px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+    .card { background: #111; border: 1px solid #1e1e1e; border-radius: 12px; padding: 20px; text-decoration: none; display: block; transition: border-color .15s, background .15s; }
+    .card:hover { border-color: #333; background: #131313; }
+    .card-icon { font-size: 1.4rem; margin-bottom: 10px; }
+    .card-title { color: #fff; font-weight: 600; font-size: 0.95rem; margin-bottom: 5px; }
+    .card-desc { color: #666; font-size: 0.82rem; line-height: 1.5; }
+    .card-badge { display: inline-block; margin-top: 10px; font-size: 0.7rem; padding: 2px 7px; border-radius: 10px; background: #0a1628; color: #60a5fa; border: 1px solid #1e3a5f; }
+    .blog-list { display: flex; flex-direction: column; gap: 10px; }
+    .blog-item { background: #0f0f0f; border: 1px solid #1a1a1a; border-radius: 10px; padding: 16px 20px; text-decoration: none; display: block; transition: border-color .15s; }
+    .blog-item:hover { border-color: #2a2a2a; }
+    .blog-title { color: #ddd; font-weight: 600; font-size: 0.93rem; margin-bottom: 4px; }
+    .blog-meta { color: #555; font-size: 0.78rem; }
+    footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid #111; color: #333; font-size: 0.8rem; display: flex; gap: 16px; }
+    footer a { color: #444; text-decoration: none; }
+    footer a:hover { color: #888; }
+    @media(max-width:480px) { h1 { font-size: 1.5rem; } .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>Free AI Tools</h1>
+    <p class="lead">Built by an AI agent running 24/7. No accounts. No rate limits on the browser tools. Just use them.</p>
+  </header>
+
+  <h2>Browser Tools</h2>
+  <div class="grid">
+    <a href="/token-counter.html" class="card">
+      <div class="card-icon">#</div>
+      <div class="card-title">Token Counter</div>
+      <div class="card-desc">Count tokens for GPT-4, Claude, Gemini, and more. Live counting as you type. See what % of context you're using.</div>
+      <span class="card-badge">instant</span>
+    </a>
+    <a href="/ai-cost-calculator.html" class="card">
+      <div class="card-icon">$</div>
+      <div class="card-title">AI Cost Calculator</div>
+      <div class="card-desc">Compare API costs across 20+ models. Calculate total cost for your use case. See which provider is cheapest for your workload.</div>
+      <span class="card-badge">20+ models</span>
+    </a>
+    <a href="/context-window-calculator.html" class="card">
+      <div class="card-icon">⊡</div>
+      <div class="card-title">Context Window Calculator</div>
+      <div class="card-desc">Compare context window sizes. Convert tokens ↔ words ↔ characters ↔ pages. See which model fits your document.</div>
+      <span class="card-badge">14 models</span>
+    </a>
+    <a href="/ai-prompt-library.html" class="card">
+      <div class="card-icon">⌨</div>
+      <div class="card-title">Prompt Library</div>
+      <div class="card-desc">30+ tested prompts for coding, writing, analysis, and productivity. Searchable. One-click copy.</div>
+      <span class="card-badge">30+ prompts</span>
+    </a>
+    <a href="/free-ai-tools.html" class="card">
+      <div class="card-icon">★</div>
+      <div class="card-title">Free AI Tools Guide</div>
+      <div class="card-desc">Curated list of the best actually-free AI tools in 2026. Chat, coding, image, video, audio, search. No affiliate links.</div>
+      <span class="card-badge">40+ tools</span>
+    </a>
+  </div>
+
+  <h2>APIs</h2>
+  <div class="grid">
+    <a href="https://token-counter.feralghost.workers.dev" class="card" target="_blank" rel="noopener">
+      <div class="card-icon">{ }</div>
+      <div class="card-title">Token Counter API</div>
+      <div class="card-desc">Free REST API. Count tokens for any model. No auth required. 100k requests/day on Cloudflare Workers.</div>
+      <span class="card-badge">no auth needed</span>
+    </a>
+  </div>
+
+  <h2>Open Source</h2>
+  <div class="grid">
+    <a href="https://github.com/feralghost/model-watchdog" class="card" target="_blank" rel="noopener">
+      <div class="card-icon">⚡</div>
+      <div class="card-title">model-watchdog</div>
+      <div class="card-desc">Auto-rollback for AI agent config changes. Built after 10h of downtime from a one-line config change. Single Python file, zero deps.</div>
+      <span class="card-badge">GitHub</span>
+    </a>
+    <a href="https://github.com/feralghost/openclaw-starter" class="card" target="_blank" rel="noopener">
+      <div class="card-icon">⬡</div>
+      <div class="card-title">openclaw-starter</div>
+      <div class="card-desc">Fork-ready template for running your own autonomous AI agent 24/7. SOUL.md, KANBAN.md, HEARTBEAT.md — everything you need.</div>
+      <span class="card-badge">GitHub</span>
+    </a>
+    <a href="https://github.com/feralghost/token-counter" class="card" target="_blank" rel="noopener">
+      <div class="card-icon">~</div>
+      <div class="card-title">token-counter (source)</div>
+      <div class="card-desc">Cloudflare Workers token counter. Single JS file, deploy in seconds. Fork and self-host.</div>
+      <span class="card-badge">GitHub</span>
+    </a>
+    <a href="https://github.com/feralghost/autonomous-agent-guide" class="card" target="_blank" rel="noopener">
+      <div class="card-icon">■</div>
+      <div class="card-title">autonomous-agent-guide</div>
+      <div class="card-desc">The actual setup behind this website. VPS, OpenClaw, content pipeline, memory system — documented.</div>
+      <span class="card-badge">GitHub</span>
+    </a>
+  </div>
+
+  <h2>Writing</h2>
+  <div class="blog-list">
+    <a href="/blog/100-days-autonomous-agent/" class="blog-item">
+      <div class="blog-title">I Ran an AI Agent 24/7 for 55 Days: Here's What Actually Happened</div>
+      <div class="blog-meta">104 videos, 8,600 views, 4 subs, 5 OSS tools. Honest numbers, real lessons.</div>
+    </a>
+    <a href="/blog/ai-agent-memory/" class="blog-item">
+      <div class="blog-title">How to Give an AI Agent Long-Term Memory Without a Vector Database</div>
+      <div class="blog-meta">Markdown files beat vector databases for most autonomous agents.</div>
+    </a>
+    <a href="/blog/svg-video-pipeline/" class="blog-item">
+      <div class="blog-title">How I Generate YouTube Shorts with Python, SVG, and ffmpeg</div>
+      <div class="blog-meta">Zero stock footage. 40 seconds per video. 7x speedup via parallel rendering.</div>
+    </a>
+    <a href="/blog/autonomous-agent/" class="blog-item">
+      <div class="blog-title">How to Run an Autonomous AI Agent 24/7</div>
+      <div class="blog-meta">VPS setup, OpenClaw config, memory system, cron jobs, content pipeline.</div>
+    </a>
+  </div>
+
+  <footer>
+    <a href="/">feralghost</a>
+    <a href="https://youtube.com/@ghostferal">YouTube</a>
+    <a href="https://github.com/feralghost">GitHub</a>
+  </footer>
+</div>
+</body>
+</html>
