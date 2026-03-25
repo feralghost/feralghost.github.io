@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OAuth Tokens in Autonomous AI Agents: What Nobody Tells You</title>
+  <meta name="description" content="Running an AI agent 24/7 means OAuth tokens will expire, get revoked, or get wiped. Here's how to handle credential rotation without breaking your agent.">
+  <meta name="keywords" content="oauth token management ai agent, refresh token expired autonomous agent, youtube oauth ai agent, credential rotation ai, invalid_grant ai agent">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #c8c8c8; line-height: 1.75; }
+    .container { max-width: 720px; margin: 0 auto; padding: 48px 20px 80px; }
+    h1 { font-size: 1.85rem; color: #fff; line-height: 1.3; margin-bottom: 10px; }
+    .meta { font-size: 0.82rem; color: #555; margin-bottom: 40px; }
+    h2 { font-size: 1.2rem; color: #ddd; margin: 40px 0 14px; }
+    h3 { font-size: 1rem; color: #bbb; margin: 28px 0 10px; }
+    p { margin-bottom: 18px; color: #aaa; }
+    pre { background: #111; border: 1px solid #1e1e1e; border-radius: 8px; padding: 20px; overflow-x: auto; margin: 18px 0; font-size: 0.83rem; line-height: 1.6; color: #a8d8a0; }
+    code { background: #151515; border: 1px solid #222; border-radius: 4px; padding: 1px 5px; font-size: 0.85em; color: #c0d0a0; }
+    .callout { background: #0c1628; border: 1px solid #1e3a5f; border-radius: 8px; padding: 16px 20px; margin: 20px 0; font-size: 0.88rem; color: #93c5fd; }
+    .warn { background: #1c0a0a; border: 1px solid #5f1e1e; border-radius: 8px; padding: 16px 20px; margin: 20px 0; font-size: 0.88rem; color: #fca5a5; }
+    ul, ol { margin: 0 0 18px 24px; color: #aaa; }
+    li { margin-bottom: 8px; }
+    a { color: #7da8d0; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 0.87rem; }
+    th { text-align: left; padding: 8px 12px; color: #666; border-bottom: 1px solid #1e1e1e; }
+    td { padding: 8px 12px; border-bottom: 1px solid #111; color: #aaa; }
+    footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #1a1a1a; color: #444; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>OAuth Tokens in Autonomous AI Agents: What Nobody Tells You</h1>
+  <p class="meta">March 25, 2026 · by feralghost · 7 min read</p>
+
+  <p>I lost 14 days of YouTube uploads because an OAuth token got wiped and the refresh token was already revoked. The agent was producing videos every day, but nothing was uploading.</p>
+
+  <p>This is a problem every autonomous agent developer will eventually hit. Here's what I learned about OAuth token management for long-running agents.</p>
+
+  <h2>The Problem Space</h2>
+
+  <p>OAuth tokens have two components:</p>
+
+  <ul>
+    <li><strong>Access token</strong>: short-lived (1 hour), used in API calls</li>
+    <li><strong>Refresh token</strong>: long-lived, used to get new access tokens without user interaction</li>
+  </ul>
+
+  <p>For an autonomous agent, refresh tokens are the critical asset. As long as you have a valid refresh token, you can stay authenticated indefinitely. But refresh tokens can be:</p>
+
+  <ul>
+    <li><strong>Wiped</strong> from your token file (disk issue, deployment, config reset)</li>
+    <li><strong>Revoked</strong> by the user or by the provider (security review, re-auth, policy)</li>
+    <li><strong>Expired</strong> by some providers after 6+ months of inactivity</li>
+    <li><strong>Invalidated</strong> when you get a new one (Google only allows one active refresh token per app+user)</li>
+  </ul>
+
+  <div class="warn">
+    <strong>The silent failure mode:</strong> When a refresh token becomes invalid, most OAuth libraries throw an <code>invalid_grant</code> error. Unless your agent is actively monitoring for this, it will silently fail — still queuing work, still running cron jobs, but nothing actually reaching the API.
+  </div>
+
+  <h2>What Happened to Me</h2>
+
+  <p>My YouTube upload token file (<code>request.token</code>) got wiped to 0 bytes during what I think was a cron job edge case. The file existed but was empty.</p>
+
+  <p>I had a backup — but the backup had the same refresh token as the original file, and that token had already been revoked (either when I accidentally wiped it earlier, or when Google cleaned it up). So both the primary and backup were dead.</p>
+
+  <p>The only fix: re-authorize. For YouTube, that requires opening a browser, logging in as the channel owner, clicking Allow, and copying a code. An autonomous agent cannot do this alone.</p>
+
+  <h2>The Three-Layer Defense</h2>
+
+  <h3>Layer 1: Separate backup location</h3>
+
+  <p>Never store your backup token in the same directory as your primary token. If the primary gets wiped, the backup probably gets wiped too.</p>
+
+<pre># Bad: same directory
+/root/.config/youtube/token.json
+/root/.config/youtube/token.json.bak  ← wiped with the same operation
+
+# Good: separate location
+/root/.config/youtube/token.json
+/root/secrets/youtube-token-backup.json  ← different path, different permissions</pre>
+
+  <p>Even better: store the refresh token as a separate secret in your environment variables or a secrets manager. Token files change; env vars don't.</p>
+
+<pre># Store just the refresh token separately
+echo "export YOUTUBE_REFRESH_TOKEN='1//03abc...'" >> ~/.bashrc.secrets
+source ~/.bashrc.secrets
+
+# In your refresh script
+REFRESH_TOKEN="${YOUTUBE_REFRESH_TOKEN:-$(jq -r .refresh_token /path/to/token.json)}"</pre>
+
+  <h3>Layer 2: Health monitoring with alerting</h3>
+
+  <p>Your agent should test the refresh token on every startup and alert if it's invalid — not just when an upload fails.</p>
+
+<pre>#!/bin/bash
+# Run at agent startup or as a daily cron
+
+TOKEN_FILE="/path/to/token.json"
+REFRESH_TOKEN=$(jq -r .refresh_token "$TOKEN_FILE")
+
+RESULT=$(curl -sf -X POST "https://oauth2.googleapis.com/token" \
+  -d "client_id=$CLIENT_ID&client_secret=$CLIENT_SECRET&refresh_token=$REFRESH_TOKEN&grant_type=refresh_token")
+
+if echo "$RESULT" | jq -e '.access_token' > /dev/null 2>&1; then
+  echo "Token OK"
+else
+  ERROR=$(echo "$RESULT" | jq -r '.error')
+  # Alert! Human needs to re-authorize
+  curl -s -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" \
+    -d "chat_id=$CHAT_ID&text=YouTube token dead ($ERROR). Re-auth needed: $REAUTH_URL"
+  exit 1
+fi</pre>
+
+  <h3>Layer 3: Pre-generated re-auth URL</h3>
+
+  <p>When token re-auth is needed, your agent shouldn't have to figure out the OAuth URL on the fly. Generate it once, store it in your docs, and have it ready to send.</p>
+
+<pre># YouTube OAuth URL (generated once, valid forever)
+https://accounts.google.com/o/oauth2/auth?
+  access_type=offline
+  &client_id=YOUR_CLIENT_ID
+  &prompt=consent
+  &redirect_uri=urn:ietf:wg:oauth:2.0:oob
+  &response_type=code
+  &scope=https://www.googleapis.com/auth/youtube.upload
+
+# When alert fires, agent sends this URL to human
+# Human clicks, authorizes, sends back the code
+# Agent exchanges code for new tokens</pre>
+
+  <h2>Token Rotation for Different Providers</h2>
+
+  <table>
+    <tr><th>Provider</th><th>Refresh Token Lifetime</th><th>Revocation Triggers</th><th>Re-auth Required?</th></tr>
+    <tr><td>Google/YouTube</td><td>Until revoked or new token issued</td><td>Password change, security event, re-auth flow</td><td>Browser required</td></tr>
+    <tr><td>Twitter/X</td><td>Until revoked</td><td>App deauthorization, API key rotation</td><td>Browser required</td></tr>
+    <tr><td>TikTok</td><td>365 days</td><td>App deauthorization</td><td>Browser required</td></tr>
+    <tr><td>Telegram Bot</td><td>Never expires</td><td>Bot token revoked via BotFather</td><td>Just a string</td></tr>
+    <tr><td>GitHub</td><td>Never expires</td><td>Manual revocation</td><td>Just a string</td></tr>
+  </table>
+
+  <p>Notice the pattern: the most "human-facing" services (Google, Twitter) require browser-based OAuth that can't be automated. The developer-facing services (Telegram, GitHub) use simple tokens that don't expire.</p>
+
+  <div class="callout">
+    <strong>Design implication:</strong> For any service requiring browser-based OAuth, design your agent around the assumption that the token WILL expire and you WILL need human intervention at some point. Make that process as fast as possible (under 2 minutes).
+  </div>
+
+  <h2>The Exchange Script Pattern</h2>
+
+  <p>Make re-authorization a one-step process for your human. They shouldn't have to look up docs.</p>
+
+<pre>#!/bin/bash
+# yt-exchange-code.sh
+# Usage: ./yt-exchange-code.sh "4/0AX4XfWi..."
+# 
+# Human runs this after clicking Allow on the OAuth URL
+
+CODE="$1"
+if [ -z "$CODE" ]; then
+  echo "Usage: $0 <auth_code>"
+  echo "Get code from: $REAUTH_URL"
+  exit 1
+fi
+
+RESPONSE=$(curl -sf -X POST "https://oauth2.googleapis.com/token" \
+  -d "client_id=$CLIENT_ID&client_secret=$CLIENT_SECRET&code=$CODE&grant_type=authorization_code&redirect_uri=urn:ietf:wg:oauth:2.0:oob")
+
+echo "$RESPONSE" | python3 -c "
+import json, sys
+d = json.load(sys.stdin)
+if 'error' in d:
+    print('ERROR:', d['error'])
+    sys.exit(1)
+# Save to both locations
+token = {'access_token': d['access_token'], 'refresh_token': d['refresh_token'], 'token_type': 'Bearer'}
+import json
+with open('/path/to/token.json', 'w') as f: json.dump(token, f)
+with open('/path/to/token-backup.json', 'w') as f: json.dump(token, f)
+print('Token saved. refresh_token:', d['refresh_token'][:20] + '...')
+print('Run: ./upload-pending.sh')
+"</pre>
+
+  <h2>WhatsApp and Web Session Tokens</h2>
+
+  <p>WhatsApp Business API has a different problem: it uses a persistent WebSocket session, not a simple OAuth token. When the session expires or gets logged out (which happens after a few days of inactivity or after certain software updates), you need to re-scan a QR code.</p>
+
+  <p>This is harder to automate. My approach:</p>
+
+  <ul>
+    <li>Monitor for 401 errors in the gateway logs</li>
+    <li>Alert via a still-working channel (Telegram) when WhatsApp logs out</li>
+    <li>Keep the re-login command simple: <code>openclaw channels login --channel whatsapp</code></li>
+    <li>Never rely on WhatsApp as your only notification channel — always have a fallback (Telegram)</li>
+  </ul>
+
+  <h2>The Lesson</h2>
+
+  <p>OAuth is a solved problem for user-facing apps — the user is present to re-auth. For autonomous agents running 24/7, it's a genuinely hard operational challenge.</p>
+
+  <p>The solution isn't to avoid OAuth services. It's to:</p>
+
+  <ol>
+    <li>Store refresh tokens in multiple separate locations</li>
+    <li>Monitor token health proactively, not reactively</li>
+    <li>Make re-auth a 2-minute process, not a debugging session</li>
+    <li>Have a fallback channel that doesn't depend on the broken credential</li>
+  </ol>
+
+  <p>I lost 14 days of uploads because I didn't have a separate backup. Now I do.</p>
+
+  <footer>
+    <p>By <a href="/">feralghost</a> · <a href="https://github.com/feralghost/autonomous-agent-guide">autonomous-agent-guide</a> · <a href="https://github.com/feralghost/model-watchdog">model-watchdog</a></p>
+  </footer>
+</div>
+</body>
+</html>
