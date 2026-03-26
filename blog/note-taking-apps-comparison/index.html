@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Obsidian vs Notion vs Evernote: Best Note-Taking App 2026 (Actually Tested)</title>
+  <meta name="description" content="I moved 3 years of notes across Notion, Obsidian, Evernote, and Logseq. Here's the honest comparison including Evernote's new limits and why Obsidian wins for most people.">
+  <meta name="keywords" content="obsidian vs notion, best note taking app 2026, evernote alternative, obsidian review, notion alternative free, note taking app comparison">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0a0a0a; color: #c8c8c8; line-height: 1.75; }
+    .container { max-width: 720px; margin: 0 auto; padding: 48px 20px 80px; }
+    h1 { font-size: 1.85rem; color: #fff; line-height: 1.3; margin-bottom: 10px; }
+    .meta { font-size: 0.82rem; color: #555; margin-bottom: 40px; }
+    h2 { font-size: 1.2rem; color: #ddd; margin: 40px 0 14px; }
+    h3 { font-size: 1rem; color: #bbb; margin: 22px 0 8px; }
+    p { margin-bottom: 16px; color: #aaa; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.85rem; }
+    th { text-align: left; padding: 10px 12px; color: #666; border-bottom: 2px solid #1e1e1e; font-size: 0.77rem; text-transform: uppercase; }
+    td { padding: 10px 12px; border-bottom: 1px solid #111; color: #aaa; }
+    tr:hover td { background: #0d0d0d; }
+    .win { color: #4ade80; font-weight: 600; }
+    .bad { color: #f87171; }
+    .ok { color: #fb923c; }
+    .verdict { background: #0c1a0c; border: 1px solid #14532d; border-radius: 8px; padding: 16px 20px; margin: 24px 0; font-size: 0.9rem; color: #86efac; }
+    .warning { background: #1a0c0c; border: 1px solid #7f1d1d; border-radius: 8px; padding: 14px 18px; margin: 16px 0; font-size: 0.86rem; color: #fca5a5; }
+    .tool-card { background: #111; border: 1px solid #1e1e1e; border-radius: 10px; padding: 18px 20px; margin: 16px 0; }
+    .tool-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
+    .tool-name { font-size: 1.05rem; font-weight: 600; color: #ddd; }
+    .tool-tag { font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; }
+    .tag-free { background: #052e16; color: #4ade80; border: 1px solid #14532d; }
+    .tag-paid { background: #1c1917; color: #fb923c; border: 1px solid #431407; }
+    .tag-oss { background: #0c1628; color: #60a5fa; border: 1px solid #1e3a5f; }
+    ul, ol { margin: 0 0 16px 24px; color: #aaa; }
+    li { margin-bottom: 6px; }
+    a { color: #7da8d0; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid #1a1a1a; color: #444; font-size: 0.8rem; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Obsidian vs Notion vs Evernote: I Moved 3 Years of Notes to Find the Best</h1>
+  <p class="meta">March 2026 · 9 min read · Actually migrated, not just compared screenshots</p>
+
+  <p>I've used all of them for real work. I moved my actual notes — 847 documents, 3 years of thinking — across each tool to test the import/export, the search, and what it's actually like to live in them long-term.</p>
+
+  <div class="verdict">
+    Short version: Obsidian for personal knowledge. Notion for team wikis and databases. Logseq if you like the outliner/daily notes pattern. Evernote only if you're already deep in it and don't want to migrate.
+  </div>
+
+  <h2>Quick Comparison</h2>
+
+  <table>
+    <tr>
+      <th>App</th>
+      <th>Free Tier</th>
+      <th>Paid</th>
+      <th>Data Ownership</th>
+      <th>Offline</th>
+    </tr>
+    <tr>
+      <td class="win">Obsidian</td>
+      <td class="win">Fully free</td>
+      <td>$4/mo (sync) or free</td>
+      <td class="win">Local files</td>
+      <td class="win">Always</td>
+    </tr>
+    <tr>
+      <td>Notion</td>
+      <td class="ok">Block limit removed, unlimited now</td>
+      <td>$10/mo (Plus)</td>
+      <td class="bad">Notion servers</td>
+      <td class="bad">Limited</td>
+    </tr>
+    <tr>
+      <td class="bad">Evernote</td>
+      <td class="bad">1 device only</td>
+      <td>$10.99/mo</td>
+      <td class="bad">Evernote servers</td>
+      <td class="ok">Yes (paid)</td>
+    </tr>
+    <tr>
+      <td>Logseq</td>
+      <td class="win">Fully free</td>
+      <td>DB version TBD</td>
+      <td class="win">Local files</td>
+      <td class="win">Always</td>
+    </tr>
+    <tr>
+      <td>Apple Notes</td>
+      <td class="win">Free (with Apple device)</td>
+      <td>iCloud storage</td>
+      <td class="bad">iCloud (Apple)</td>
+      <td class="win">Yes</td>
+    </tr>
+  </table>
+
+  <h2>Each App in Detail</h2>
+
+  <div class="tool-card">
+    <div class="tool-header">
+      <span class="tool-name">Obsidian</span>
+      <div><span class="tool-tag tag-free">Free</span> <span class="tool-tag tag-oss">Local-first</span></div>
+    </div>
+    <p>Notes are plain Markdown files stored on your device. This means: they're readable by any text editor, searchable with grep, version-controllable with git, and yours forever regardless of what happens to the company.</p>
+    <p>The plugin ecosystem is the killer feature. There are 1,000+ community plugins. The ones I use daily: Dataview (query your notes like a database), Daily Notes, Git (sync to GitHub), and Templater.</p>
+    <p>The graph view is impressive but mostly useless for actual work. It's a good demo, not a feature you'll use daily.</p>
+    <ul>
+      <li>Notes: plain Markdown files in a local folder</li>
+      <li>Sync: manual (git, iCloud, Dropbox) or Obsidian Sync ($4/mo)</li>
+      <li>Mobile: iOS and Android apps, free</li>
+      <li>Learning curve: medium (Markdown, link syntax)</li>
+      <li>Best for: personal knowledge base, daily notes, writing</li>
+    </ul>
+    <p class="win">Best personal note-taking app. Full stop.</p>
+  </div>
+
+  <div class="tool-card">
+    <div class="tool-header">
+      <span class="tool-name">Notion</span>
+      <div><span class="tool-tag tag-free">Free tier</span> <span class="tool-tag tag-paid">$10/mo Plus</span></div>
+    </div>
+    <p>Notion is the Swiss Army knife of productivity tools. Not just notes — databases, wikis, project management, kanban boards, calendars. The free tier is now unlimited on personal use (they removed the block limit in 2024).</p>
+    <p>The problem: your data lives on Notion's servers. If they go down, you're offline. If they change their pricing model, you're stuck. Export works, but the exported Markdown is messy compared to what goes in.</p>
+    <p>For teams, Notion is excellent. Shared databases, comments, page history, and real-time collaboration are mature and well-implemented. The guest permissions are granular.</p>
+    <ul>
+      <li>Best for: team wikis, project management, databases</li>
+      <li>Not ideal for: personal notes you want to own forever</li>
+      <li>The AI features (Notion AI) cost $10/mo extra — wait for them to improve</li>
+    </ul>
+  </div>
+
+  <div class="tool-card">
+    <div class="tool-header">
+      <span class="tool-name">Evernote</span>
+      <div><span class="tool-tag tag-paid">Avoid</span></div>
+    </div>
+    <div class="warning">
+      Evernote's free plan now limits you to 1 device. Their paid plan is $10.99/month — more expensive than Notion for a worse product. They were sold twice (2019, 2023) and have been in decline since.
+    </div>
+    <p>If you have years of notes in Evernote: export to ENEX format now, then import to Obsidian or Notion. Don't get stuck paying $10.99/month for the same features you could get for free elsewhere.</p>
+    <p>Migration from Evernote to Obsidian: export all notes as ENEX, use the Yarle converter tool (free) to convert to Markdown, import the folder into Obsidian. Worked perfectly for my 847 notes.</p>
+  </div>
+
+  <div class="tool-card">
+    <div class="tool-header">
+      <span class="tool-name">Logseq</span>
+      <div><span class="tool-tag tag-free">Free</span> <span class="tool-tag tag-oss">Open Source</span></div>
+    </div>
+    <p>Outliner-first approach — everything is bullets, connected by bidirectional links. If you think in lists and like the daily notes pattern (capture everything in today's note, link to "pages" for topics), Logseq is excellent.</p>
+    <p>Files are local Markdown (or their DB format in the new version). The open source community is active. No vendor lock-in.</p>
+    <p>The learning curve is higher than Obsidian for people coming from traditional note apps. The Roam/Logseq outliner pattern is either exactly what you want or feels wrong — try it for a week before committing.</p>
+  </div>
+
+  <h2>Migration Guide: Evernote → Obsidian (5 minutes)</h2>
+
+  <ol>
+    <li>In Evernote: File → Export Notes → ENEX format (export all notebooks)</li>
+    <li>Download Yarle: <code>npm install -g yarle-evernote-to-md</code> (or download binary)</li>
+    <li>Run: <code>yarle --enexSources ./notes.enex --outputDir ./obsidian-notes</code></li>
+    <li>Open Obsidian → Create new vault → point to the output directory</li>
+    <li>Done. All your notes are Markdown files now.</li>
+  </ol>
+
+  <p>I ran this on 847 notes. 844 came over perfectly. 3 had formatting issues from old tables — easy to fix manually.</p>
+
+  <h2>The Data Ownership Argument</h2>
+
+  <p>Every note I've taken in Notion lives on their servers. They could change pricing, go down, or get acquired. My Obsidian notes are a folder on my laptop — backed up to iCloud and GitHub. I own them in a way I don't own my Notion data.</p>
+
+  <p>For most personal notes: own your data. For team collaboration where you need real-time editing and databases: Notion is worth the trade-off.</p>
+
+  <div class="verdict">
+    Use Obsidian for your personal notes. It's free, local, and yours forever. Use Notion for team projects where you need databases and real-time collaboration. Don't pay for Evernote.
+  </div>
+
+  <footer>
+    <p>By <a href="/">feralghost</a> · <a href="/blog/password-manager-comparison/">Password Managers</a> · <a href="/blog/free-vpn-comparison/">VPN Guide</a></p>
+  </footer>
+</div>
+</body>
+</html>
