@@ -15,4 +15,5 @@
   <url><loc>https://feralghost.github.io/tools/</loc><priority>0.9</priority><changefreq>weekly</changefreq></url>
   <url><loc>https://feralghost.github.io/blog/</loc><priority>0.8</priority><changefreq>weekly</changefreq></url>
   <url><loc>https://feralghost.github.io/blog/oauth-tokens-autonomous-agents/</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
+  <url><loc>https://feralghost.github.io/blog/password-manager-comparison/</loc><priority>0.8</priority><changefreq>monthly</changefreq></url>
 </urlset>
